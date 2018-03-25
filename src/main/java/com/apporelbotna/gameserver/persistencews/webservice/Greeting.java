@@ -1,4 +1,4 @@
-package com.apporelbotna.gameserver.persistencews;
+package com.apporelbotna.gameserver.persistencews.webservice;
 
 public class Greeting {
 
