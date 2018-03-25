@@ -9,7 +9,8 @@ public class InvalidInformationException extends Exception
 
 	public enum Reason
 	{
-		USER_IS_STORED("El usuario ya ha sido guardado");
+		USER_IS_STORED("El usuario ya ha sido guardado"),
+		USER_IS_NOT_STORED("El usuario no existe");
 
 		private String msg;
 
