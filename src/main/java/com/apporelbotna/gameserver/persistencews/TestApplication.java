@@ -3,22 +3,21 @@ package com.apporelbotna.gameserver.persistencews;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
 import com.apporelbotna.gameserver.persistencews.service.PostgreService;
 import com.apporelbotna.gameserver.stubs.Game;
+import com.apporelbotna.gameserver.stubs.Match;
+import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
 
-@SpringBootApplication
-public class Application
+
+public class TestApplication
 {
 
 	public static void main(String[] args)
 	{
-		// SpringApplication.run(Application.class, args);
 		PostgreDAO postgreDao = PostgreDAO.getInstance();
 		PostgreService postgreService = PostgreService.getInstance();
 		postgreDao.connect();
@@ -91,7 +90,7 @@ public class Application
 
 		try
 		{
-			List<Game> games = postgreDao.getGamesUser("jan1@jan.com");
+			List<Game> games = postgreDao.getAllGamesByUser("jan1@jan.com");
 			for (Game game : games)
 			{
 				System.out.println(game);
@@ -120,9 +119,41 @@ public class Application
 		try
 		{
 			System.out.println(postgreDao.getHourPlayedInGame("jan@jan.com", 1));
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		//ranking game Pong
+		System.out.println("------------------------------------------");
+
+		try
+		{
+			List<RankingPointsTO> ranking = postgreDao.getRankingUsersGameByPoints(1);
+			for (RankingPointsTO rankingPointsTO : ranking)
+			{
+				System.out.println(rankingPointsTO);
+			}
 		} catch (SQLException e)
 		{
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidInformationException e)
+		{
+			e.printStackTrace();
+		}
+
+		System.out.println("------------------------------------------");
+		//Test insert newGamePlayed
+
+		Match gamePlayed = new Match(100, "jan@jan.com", 1, 5.30f, 25);
+		try
+		{
+			postgreDao.storeNewMatch(gamePlayed);
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		} catch (InvalidInformationException e)
+		{
 			e.printStackTrace();
 		}
 

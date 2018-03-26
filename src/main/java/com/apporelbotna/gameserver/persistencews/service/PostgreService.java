@@ -29,12 +29,14 @@ public class PostgreService
 		User user = postgreDao.getUserBasicInformation(email);
 
 		if(user != null) {
-			user.setGames(postgreDao.getGamesUser(email));
+			user.setGames(postgreDao.getAllGamesByUser(email));
 		}
 
 		return user;
 	}
 
+
+	//TODO metodo que gestione la capa de negocio (reglas) de win partida
 
 
 }

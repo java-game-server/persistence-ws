@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException.Reason;
 import com.apporelbotna.gameserver.stubs.Game;
+import com.apporelbotna.gameserver.stubs.Match;
+import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
 
@@ -92,7 +94,7 @@ public class PostgreDAO
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<Game> getGamesUser(String email) throws SQLException
+	public List<Game> getAllGamesByUser(String email) throws SQLException
 	{
 		Statement st = conn.createStatement();
 		String select = "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description"
@@ -129,7 +131,7 @@ public class PostgreDAO
 	 */
 	public String getUserPassword(String email) throws SQLException
 	{
-		String select = "SELECT password FROM public.\"user\" where email = '" + email + "'";
+		String select = "SELECT password FROM public.user where email = '" + email + "'";
 		Statement st = conn.createStatement();
 		ResultSet rs = st.executeQuery(select);
 		String password = null;
@@ -143,21 +145,26 @@ public class PostgreDAO
 		return password;
 	}
 
-	public double getHourPlayedInGame(String email, int GameId) throws SQLException
+	public float getHourPlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
 	{
-		//TODO Mirar si hay usuario con este email.
-		//TODO Mirar si existe el juego.
+		if(getUserBasicInformation(email) == null) {
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+
+		if(getGameById(gameId) == null) {
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
 
 		String select = "select email_user, id_game, game_lenght "
 				+ "from public.user_historical_game "
-				+ "where email_user = '" + email + "' and id_game = " + GameId;
+				+ "where email_user = '" + email + "' and id_game = " + gameId;
 		Statement st = conn.createStatement();
 		ResultSet rs = st.executeQuery(select);
 
-		double totalTime = 0.0;
+		float totalTime = 0.0f;
 		while (rs.next())
 		{
-			totalTime += rs.getDouble("game_lenght");
+			totalTime += rs.getFloat("game_lenght");
 		}
 
 		rs.close();
@@ -166,6 +173,58 @@ public class PostgreDAO
 		return totalTime;
 	}
 
+	public Game getGameById(int idGame) throws SQLException
+	{
+		Statement st = conn.createStatement();
+		String select = "select * from public.game where id = " + idGame;
+		ResultSet rs = st.executeQuery(select);
+
+		Game game = null;
+		if (rs.next())
+		{
+			game = new Game(rs.getInt("id"),
+							rs.getString("name"),
+							rs.getString("description")
+							);
+		}
+
+		rs.close();
+		st.close();
+		return game;
+	}
+
+	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame) throws SQLException, InvalidInformationException
+	{
+		Game game = getGameById(idGame);
+
+		if(game == null) {
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+
+		Statement st = conn.createStatement();
+		String select = "select email_user, sum(puntuation) as puntuation"
+				+ " from public.user_historical_game"
+				+ " where id_game = " + idGame
+				+ " group by email_user";
+		ResultSet rs = st.executeQuery(select);
+
+		List<RankingPointsTO> ranking = new ArrayList<>();
+		while (rs.next())
+		{
+			ranking.add(
+					new RankingPointsTO(
+							rs.getString("email_user"),
+							rs.getRow(),
+							rs.getInt("puntuation")
+							)
+					);
+		}
+
+		rs.close();
+		st.close();
+
+		return ranking;
+	}
 
 
 	/*************************** Insert ********************************/
@@ -178,7 +237,8 @@ public class PostgreDAO
 	 */
 	public void storeNewUserInBBDD(User user, String password) throws InvalidInformationException, SQLException
 	{
-		if (getUserBasicInformation(user.getEmail()) != null)
+		if (getUserBasicInformation(user.getEmail()) != null)   // TODO make method that returns boolean if user exist
+																//	or not and remove this CheiPuZa
 		{
 			throw new InvalidInformationException(Reason.USER_IS_STORED);
 		}
@@ -193,11 +253,20 @@ public class PostgreDAO
 		preparedStatement.close();
 	}
 
+	/**
+	 * Store new token to one user.
+	 * It checks if the user exist
+	 *
+	 * @param user
+	 * @param token
+	 * @throws InvalidInformationException if the user is stored
+	 * @throws SQLException
+	 */
 	public void storeTokenToUser(User user, Token token) throws InvalidInformationException, SQLException
 	{
 		if (getUserBasicInformation(user.getEmail()) == null)
 		{
-			throw new InvalidInformationException(Reason.USER_IS_STORED);
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
 
 		String query = "INSERT INTO public.token (token, user_email) VALUES (?, ?);";
@@ -207,7 +276,37 @@ public class PostgreDAO
 		preparedStatement.setString(2, user.getEmail());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();
+	}
 
+
+	/**
+	 * @param Match
+	 * @throws SQLException
+	 * @throws InvalidInformationException
+	 */
+	public void storeNewMatch(Match Match) throws SQLException, InvalidInformationException
+	{
+		User user = getUserBasicInformation(Match.getEmailUser());
+		if(user == null) {
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+
+		Game game = getGameById(Match.getIdGame());
+		if(game == null) {
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+
+		String query = "INSERT INTO public.user_historical_game"
+				+ " (email_user, id_game, game_lenght, puntuation)"
+				+ " VALUES (?, ?, ?, ?);";
+
+		PreparedStatement preparedStatement = conn.prepareStatement(query);
+		preparedStatement.setString(1, Match.getEmailUser());
+		preparedStatement.setInt(2, Match.getIdGame());
+		preparedStatement.setFloat(3, Match.getGameLenght());
+		preparedStatement.setInt(4, Match.getPuntuation());
+		preparedStatement.executeUpdate();
+		preparedStatement.close();
 	}
 
 }
