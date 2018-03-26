@@ -1,4 +1,4 @@
-package com.apporelbotna.gameserver.persistencews;
+package com.apporelbotna.gameserver.persistencews.webservice;
 
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.web.bind.annotation.RequestMapping;

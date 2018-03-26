@@ -32,7 +32,9 @@ dependencies {
     
     // https://mvnrepository.com/artifact/postgresql/postgresql
 	compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1200-jdbc41'
-
+	
+	compile fileTree(dir: 'libs', include: '*.jar')
+	
     
 }
 

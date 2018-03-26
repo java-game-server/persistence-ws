@@ -4,11 +4,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Application {
+public class WebServiceAPP
+{
 
-    public static void main(String[] args) {
-//        SpringApplication.run(Application.class, args);
-    	PostgreDAO dao = new PostgreDAO();
-    	dao.connect();
-    }
+	public static void main(String[] args)
+	{
+		SpringApplication.run(WebServiceAPP.class, args);
+
+	}
+
 }
