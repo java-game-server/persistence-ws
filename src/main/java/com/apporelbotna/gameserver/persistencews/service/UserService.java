@@ -2,30 +2,25 @@ package com.apporelbotna.gameserver.persistencews.service;
 
 import java.sql.SQLException;
 
+import org.springframework.stereotype.Service;
+
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
 import com.apporelbotna.gameserver.stubs.User;
 
-//TODO rename this class
-/**
- * Singletone
- */
-public class PostgreService
+@Service
+public class UserService
 {
-	private static PostgreService instance = new PostgreService();
+	private PostgreDAO postgreDAO;
 
-	private PostgreService()
+	public UserService()
 	{
-
+		postgreDAO = new PostgreDAO();
 	}
 
-	public static PostgreService getInstance()
-	{
-		return instance;
-	}
 
 
 	public User getAllInformationUser(String email) throws SQLException {
-		PostgreDAO postgreDao = PostgreDAO.getInstance();
+		PostgreDAO postgreDao = new PostgreDAO();
 		User user = postgreDao.getUserBasicInformation(email);
 
 		if(user != null) {
@@ -34,9 +29,4 @@ public class PostgreService
 
 		return user;
 	}
-
-
-	//TODO metodo que gestione la capa de negocio (reglas) de win partida
-
-
 }
