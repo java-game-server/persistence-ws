@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
-import com.apporelbotna.gameserver.persistencews.service.PostgreService;
+import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.Match;
 import com.apporelbotna.gameserver.stubs.RankingPointsTO;
@@ -18,8 +18,8 @@ public class TestApplication
 
 	public static void main(String[] args)
 	{
-		PostgreDAO postgreDao = PostgreDAO.getInstance();
-		PostgreService postgreService = PostgreService.getInstance();
+		PostgreDAO postgreDao = new PostgreDAO();
+		UserService userService = new UserService();
 		postgreDao.connect();
 
 		// Testing
@@ -62,7 +62,7 @@ public class TestApplication
 				}
 
 				// generar token insertar y devolver
-				User userTestToken = postgreService.getAllInformationUser(email);
+				User userTestToken = userService.getAllInformationUser(email);
 				Token token = new Token();
 				try
 				{
@@ -105,7 +105,7 @@ public class TestApplication
 		//Check user with all information
 		try
 		{
-			User userAllInformationTest = postgreService.getAllInformationUser("jan@jan.com");
+			User userAllInformationTest = userService.getAllInformationUser("jan@jan.com");
 			System.out.println(userAllInformationTest);
 
 		} catch (SQLException e)
@@ -145,7 +145,7 @@ public class TestApplication
 		System.out.println("------------------------------------------");
 		//Test insert newGamePlayed
 
-		Match gamePlayed = new Match(100, "jan@jan.com", 1, 5.30f, 25);
+		Match gamePlayed = new Match("jan@jan.com", 1, 5.30f, 25);
 		try
 		{
 			postgreDao.storeNewMatch(gamePlayed);

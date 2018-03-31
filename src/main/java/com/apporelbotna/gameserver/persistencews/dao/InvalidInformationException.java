@@ -2,9 +2,7 @@ package com.apporelbotna.gameserver.persistencews.dao;
 
 public class InvalidInformationException extends Exception
 {
-	/**
-	 *
-	 */
+
 	private static final long serialVersionUID = 1L;
 
 	public enum Reason

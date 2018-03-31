@@ -1,13 +1,13 @@
 package com.apporelbotna.gameserver.persistencews.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.stereotype.Repository;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException.Reason;
 import com.apporelbotna.gameserver.stubs.Game;
@@ -18,45 +18,14 @@ import com.apporelbotna.gameserver.stubs.User;
 
 
 /**
- * TODO rename this class
  * TODO To be documented
- * Singletone
  */
-public class PostgreDAO
+@Repository
+public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 {
-	private final String url = "jdbc:postgresql://localhost/AppOrElBotnaGameClient";
-	private final String dbUser = "root";
-	private final String dbPassword = "root";
-	private Connection conn = null;
-
-	private static PostgreDAO instance = new PostgreDAO();
-
-	private PostgreDAO()
+	public PostgreDAO()
 	{
 
-	}
-
-	public static PostgreDAO getInstance()
-	{
-		return instance;
-	}
-
-	public Connection connect()
-	{
-		try
-		{
-			conn = DriverManager.getConnection(url, dbUser, dbPassword);
-			System.out.println("Connected to the PostgreSQL server successfully.");
-		} catch (SQLException e)
-		{
-			System.out.println(e.getMessage());
-		}
-		return conn;
-	}
-
-	public void close()
-	{
-		conn = null;
 	}
 
 	/*************************** Selects ***********************************/
@@ -67,6 +36,7 @@ public class PostgreDAO
 	 * @return user if exist or null.
 	 * @throws SQLException
 	 */
+	@Override
 	public User getUserBasicInformation(String email) throws SQLException
 	{
 		Statement st = conn.createStatement();
@@ -94,6 +64,7 @@ public class PostgreDAO
 	 * @return
 	 * @throws SQLException
 	 */
+	@Override
 	public List<Game> getAllGamesByUser(String email) throws SQLException
 	{
 		Statement st = conn.createStatement();
@@ -129,6 +100,7 @@ public class PostgreDAO
 	 * @return the password of the user if exists or null
 	 * @throws SQLException
 	 */
+	@Override
 	public String getUserPassword(String email) throws SQLException
 	{
 		String select = "SELECT password FROM public.user where email = '" + email + "'";
@@ -145,6 +117,7 @@ public class PostgreDAO
 		return password;
 	}
 
+	@Override
 	public float getHourPlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
 	{
 		if(getUserBasicInformation(email) == null) {
@@ -173,6 +146,7 @@ public class PostgreDAO
 		return totalTime;
 	}
 
+	@Override
 	public Game getGameById(int idGame) throws SQLException
 	{
 		Statement st = conn.createStatement();
@@ -193,6 +167,7 @@ public class PostgreDAO
 		return game;
 	}
 
+	@Override
 	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame) throws SQLException, InvalidInformationException
 	{
 		Game game = getGameById(idGame);
@@ -235,9 +210,10 @@ public class PostgreDAO
 	 * @throws InvalidInformationException
 	 * @throws SQLException
 	 */
+	@Override
 	public void storeNewUserInBBDD(User user, String password) throws InvalidInformationException, SQLException
 	{
-		if (getUserBasicInformation(user.getEmail()) != null)   // TODO make method that returns boolean if user exist
+		if (getUserBasicInformation(user.getId()) != null)   // TODO make method that returns boolean if user exist
 																//	or not and remove this CheiPuZa
 		{
 			throw new InvalidInformationException(Reason.USER_IS_STORED);
@@ -246,7 +222,7 @@ public class PostgreDAO
 		String query = "INSERT INTO public.\"user\"(email, name, password)	VALUES (?, ?, ?)";
 
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
-		preparedStatement.setString(1, user.getEmail());
+		preparedStatement.setString(1, user.getId());
 		preparedStatement.setString(2, user.getName());
 		preparedStatement.setString(3, password);
 		preparedStatement.executeUpdate();
@@ -262,9 +238,10 @@ public class PostgreDAO
 	 * @throws InvalidInformationException if the user is stored
 	 * @throws SQLException
 	 */
+	@Override
 	public void storeTokenToUser(User user, Token token) throws InvalidInformationException, SQLException
 	{
-		if (getUserBasicInformation(user.getEmail()) == null)
+		if (getUserBasicInformation(user.getId()) == null)
 		{
 			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
@@ -273,25 +250,26 @@ public class PostgreDAO
 
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
 		preparedStatement.setString(1, token.getTokenName());
-		preparedStatement.setString(2, user.getEmail());
+		preparedStatement.setString(2, user.getId());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();
 	}
 
 
 	/**
-	 * @param Match
+	 * @param match
 	 * @throws SQLException
 	 * @throws InvalidInformationException
 	 */
-	public void storeNewMatch(Match Match) throws SQLException, InvalidInformationException
+	@Override
+	public void storeNewMatch(Match match) throws SQLException, InvalidInformationException
 	{
-		User user = getUserBasicInformation(Match.getEmailUser());
+		User user = getUserBasicInformation(match.getEmailUser());
 		if(user == null) {
 			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
 
-		Game game = getGameById(Match.getIdGame());
+		Game game = getGameById(match.getIdGame());
 		if(game == null) {
 			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
 		}
@@ -301,10 +279,10 @@ public class PostgreDAO
 				+ " VALUES (?, ?, ?, ?);";
 
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
-		preparedStatement.setString(1, Match.getEmailUser());
-		preparedStatement.setInt(2, Match.getIdGame());
-		preparedStatement.setFloat(3, Match.getGameLenght());
-		preparedStatement.setInt(4, Match.getPuntuation());
+		preparedStatement.setString(1, match.getEmailUser());
+		preparedStatement.setInt(2, match.getIdGame());
+		preparedStatement.setFloat(3, match.getGameLenght());
+		preparedStatement.setInt(4, match.getPuntuation());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();
 	}
