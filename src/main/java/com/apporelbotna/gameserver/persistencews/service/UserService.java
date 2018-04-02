@@ -21,6 +21,7 @@ public class UserService
 
 	public User getAllInformationUser(String email) throws SQLException {
 		PostgreDAO postgreDao = new PostgreDAO();
+		postgreDao.connect();
 		User user = postgreDao.getUserBasicInformation(email);
 
 		if(user != null) {

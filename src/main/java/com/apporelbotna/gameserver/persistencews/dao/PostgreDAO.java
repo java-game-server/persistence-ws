@@ -15,6 +15,7 @@ import com.apporelbotna.gameserver.stubs.Match;
 import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
+import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 
 /**
@@ -205,14 +206,15 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	/*************************** Insert ********************************/
 
 	/**
-	 * @param user
+	 * @param userWrapper
 	 * @param password
 	 * @throws InvalidInformationException
 	 * @throws SQLException
 	 */
 	@Override
-	public void storeNewUserInBBDD(User user, String password) throws InvalidInformationException, SQLException
+	public void storeNewUserInBBDD(UserWrapper userWrapper) throws InvalidInformationException, SQLException
 	{
+		User user = userWrapper.getUser();
 		if (getUserBasicInformation(user.getId()) != null)   // TODO make method that returns boolean if user exist
 																//	or not and remove this CheiPuZa
 		{
@@ -224,7 +226,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
 		preparedStatement.setString(1, user.getId());
 		preparedStatement.setString(2, user.getName());
-		preparedStatement.setString(3, password);
+		preparedStatement.setString(3, userWrapper.getPassword());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();
 	}
