@@ -36,5 +36,45 @@ public class GameResource extends ResourceSupport
 		return description;
 	}
 
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((identifiable == null) ? 0 : identifiable.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!super.equals(obj))
+		{
+			return false;
+		}
+		if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+		GameResource other = (GameResource) obj;
+		if (identifiable == null)
+		{
+			if (other.identifiable != null)
+			{
+				return false;
+			}
+		} else if (!identifiable.equals(other.identifiable))
+		{
+			return false;
+		}
+		return true;
+	}
+
+
+
 
 }

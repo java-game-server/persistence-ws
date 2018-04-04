@@ -12,10 +12,25 @@
 # it's better to unpack these files and commit the raw source
 # git has its own built in compression methods
 *.7z
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
 *.dmg
 *.gz
 *.iso
 *.jar
+!gradle-wrapper.jar
 *.rar
 *.tar
 *.zip
@@ -46,6 +61,7 @@ Thumbs.db
 */target
 /build
 */build
+/bin
 
 # IntelliJ specific files/directories
 out
@@ -63,4 +79,4 @@ atlassian-ide-plugin.xml
 
 # NetBeans specific files/directories
 .nbattrs
-bin/
+/.nb-gradle/

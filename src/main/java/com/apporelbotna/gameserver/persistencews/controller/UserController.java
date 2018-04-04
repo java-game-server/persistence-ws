@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,11 +24,9 @@ import com.apporelbotna.gameserver.persistencews.resource.UserResource;
 import com.apporelbotna.gameserver.persistencews.resource.UserResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
-import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
 import com.apporelbotna.gameserver.stubs.UserWrapper;
 
-@CrossOrigin(origins = "*")
 @RestController
 @ExposesResourceFor(User.class)
 @RequestMapping(value = "/user", produces = "application/json")
@@ -59,12 +56,36 @@ public class UserController
 		} catch (SQLException e)
 		{
 			// Log
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	}
+
+	@RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
+	public ResponseEntity<Collection<GameResource>> findAllGamesByUser(@PathVariable String userEmail)
+	{
+		postgreDAO.connect();
+		List<Game> games = new ArrayList<>();
+		try
+		{
+			games = postgreDAO.getAllGamesByUser(userEmail);
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(gameAssembler.toResourceCollection(games), HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/user/game/hour/{email}", method = RequestMethod.GET)
+	public ResponseEntity<Collection<GameResource>> findHourPlayedByUsername(
+			@PathVariable String email)
+	{
+		// TODO implement
+		return null;
 	}
 
 	/**
-	 * Create a new User TODO return a resource
+	 * Create a new User
 	 *
 	 * @param user
 	 * @return
@@ -88,51 +109,6 @@ public class UserController
 		{
 			return HttpStatus.SERVICE_UNAVAILABLE;
 		}
-	}
-
-	@RequestMapping(value = "/game/{email}", method = RequestMethod.GET)
-	public ResponseEntity<Collection<GameResource>> findAllGamesByUser(@PathVariable User user)
-	{
-		postgreDAO.connect();
-		List<Game> games = new ArrayList<>();
-		try
-		{
-			games = postgreDAO.getAllGamesByUser(user.getId());
-		} catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-		return new ResponseEntity<>(gameAssembler.toResourceCollection(games), HttpStatus.OK);
-
-	}
-
-	@RequestMapping(value = "/user/game/hour/{email}", method = RequestMethod.GET)
-	public ResponseEntity<Collection<GameResource>> findHourPlayedByUsername(@PathVariable String email)
-	{
-		// TODO implement
-		return null;
-	}
-
-	@RequestMapping(value = "/{email}", method = RequestMethod.POST)
-	public ResponseEntity<Token> login(@PathVariable UserWrapper userWrapper)
-	{
-		postgreDAO.connect();
-		try
-		{
-			String passwordUserDB = postgreDAO.getUserPassword(userWrapper.getPassword());
-			if(passwordUserDB.equals(userWrapper.getPassword()))
-			{
-				Token token = new Token();
-				postgreDAO.storeTokenToUser(userWrapper.getUser(), token);
-				return ResponseEntity<>(token, HttpStatus.ACCEPTED);
-			}
-
-		} catch (SQLException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
 	}
 
 }
