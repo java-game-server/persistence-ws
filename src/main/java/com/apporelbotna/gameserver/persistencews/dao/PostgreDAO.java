@@ -16,6 +16,7 @@ import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
+import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 
 /**
@@ -119,7 +120,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	}
 
 	@Override
-	public float getHourPlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
+	public float getTimePlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
 	{
 		if(getUserBasicInformation(email) == null) {
 			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
@@ -167,6 +168,25 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		st.close();
 		return game;
 	}
+
+	@Override
+	public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
+	{
+		Statement st = conn.createStatement();
+		String select = "SELECT token, user_email\r\n" +
+				"	FROM public.token where token = '" + userWrapper.getToken().getTokenName() +
+				"' and user_email = '" + userWrapper.getUser().getEmail() +"';";
+		ResultSet rs = st.executeQuery(select);
+
+		boolean existe = false;
+		if (rs.next()) {
+			existe = true;
+		}
+		rs.close();
+		st.close();
+		return existe;
+	}
+
 
 	@Override
 	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame) throws SQLException, InvalidInformationException
@@ -281,7 +301,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
 		preparedStatement.setString(1, match.getEmailUser());
 		preparedStatement.setInt(2, match.getIdGame());
-		preparedStatement.setFloat(3, match.getGameLenght());
+		preparedStatement.setLong(3, (long) match.getGameTimeInSeconds());
 		preparedStatement.setInt(4, match.getScore());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();

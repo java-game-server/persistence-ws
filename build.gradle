@@ -18,6 +18,7 @@ bootJar {
 
 repositories {
     jcenter()
+    maven { url 'https://jitpack.io/' }
 }
 
 dependencies {
@@ -26,16 +27,16 @@ dependencies {
 	compile group: 'org.postgresql', name: 'postgresql', version: '9.4-1200-jdbc41'
 	
 	// https://mvnrepository.com/artifact/org.springframework.hateoas/spring-hateoas
-    compile 'org.springframework.hateoas:spring-hateoas:0.24.0.RELEASE'
+    compileOnly 'org.springframework.hateoas:spring-hateoas:0.24.0.RELEASE'
 	
 	// https://mvnrepository.com/artifact/org.springframework.plugin/spring-plugin-core
 	compile group: 'org.springframework.plugin', name: 'spring-plugin-core', version: '1.2.0.RELEASE'
 	
-	compile fileTree(dir: 'libs', include: '*.jar')
-		
+	// PersistenceWS Stubs
+    compileOnly 'com.github.java-game-server:stubs:0.6.2'
+    
     compile("org.springframework.boot:spring-boot-starter-web")
-    testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile('com.jayway.jsonpath:json-path')
+    
 }
 
 

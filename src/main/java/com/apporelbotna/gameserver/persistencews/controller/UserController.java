@@ -2,7 +2,6 @@ package com.apporelbotna.gameserver.persistencews.controller;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
-import com.apporelbotna.gameserver.persistencews.resource.GameResource;
 import com.apporelbotna.gameserver.persistencews.resource.GameResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.resource.UserResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
@@ -75,12 +73,21 @@ public class UserController
 		}
 	}
 
-	@RequestMapping(value = "/user/game/hour/{email}", method = RequestMethod.GET)
-	public ResponseEntity<Collection<GameResource>> findHourPlayedByUsername(
-			@PathVariable String email)
+	@RequestMapping(value = "{email}/game/{game}/time/", method = RequestMethod.GET)
+	public ResponseEntity<Float> getTimePlayedByUsername(
+			@PathVariable String email, @PathVariable int game)
 	{
-		// TODO implement
-		return null;
+		postgreDAO.connect();
+		try
+		{
+			float time = postgreDAO.getTimePlayedInGame(email, game);
+			return new ResponseEntity<>(time, HttpStatus.ACCEPTED);
+
+		} catch (SQLException | InvalidInformationException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -109,6 +116,8 @@ public class UserController
 			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 		}
 	}
+
+
 
 	// Metodo para explicar en la resentacion lo que trataba de hacer con Hateoas
 	//
