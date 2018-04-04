@@ -13,6 +13,7 @@ import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.Match;
 import com.apporelbotna.gameserver.stubs.RankingPointsTO;
+import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
 
@@ -211,8 +212,9 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	 * @throws SQLException
 	 */
 	@Override
-	public void storeNewUserInBBDD(User user, String password) throws InvalidInformationException, SQLException
+	public void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException, SQLException
 	{
+		User user = userToRegister.getUser();
 		if (getUserBasicInformation(user.getId()) != null)
 		{
 			throw new InvalidInformationException(Reason.USER_IS_STORED);
@@ -222,7 +224,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
 		preparedStatement.setString(1, user.getId());
 		preparedStatement.setString(2, user.getName());
-		preparedStatement.setString(3, password);
+		preparedStatement.setString(3, userToRegister.getPassword());
 		preparedStatement.executeUpdate();
 		preparedStatement.close();
 	}

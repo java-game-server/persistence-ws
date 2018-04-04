@@ -20,12 +20,11 @@ import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
 import com.apporelbotna.gameserver.persistencews.resource.GameResource;
 import com.apporelbotna.gameserver.persistencews.resource.GameResourceAssembler;
-import com.apporelbotna.gameserver.persistencews.resource.UserResource;
 import com.apporelbotna.gameserver.persistencews.resource.UserResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
+import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.User;
-import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 @RestController
 @ExposesResourceFor(User.class)
@@ -45,13 +44,13 @@ public class UserController
 	private GameResourceAssembler gameAssembler;
 
 	@RequestMapping(value = "/{email}", method = RequestMethod.GET)
-	public ResponseEntity<UserResource> findUserByEmail(@PathVariable String email)
+	public ResponseEntity<User> findUserByEmail(@PathVariable String email)
 	{
 		User user = null;
 		try
 		{
 			user = userService.getAllInformationUser(email);
-			return new ResponseEntity<>(userAssembler.toResource(user), HttpStatus.OK);
+			return new ResponseEntity<>(user, HttpStatus.OK);
 
 		} catch (SQLException e)
 		{
@@ -61,19 +60,19 @@ public class UserController
 	}
 
 	@RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
-	public ResponseEntity<Collection<GameResource>> findAllGamesByUser(@PathVariable String userEmail)
+	public ResponseEntity<List<Game>> findAllGamesByUser(@PathVariable String userEmail)
 	{
 		postgreDAO.connect();
 		List<Game> games = new ArrayList<>();
 		try
 		{
 			games = postgreDAO.getAllGamesByUser(userEmail);
+			return new ResponseEntity<>(games, HttpStatus.OK);
 		} catch (SQLException e)
 		{
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(gameAssembler.toResourceCollection(games), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/user/game/hour/{email}", method = RequestMethod.GET)
@@ -91,24 +90,43 @@ public class UserController
 	 * @return
 	 */
 	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody HttpStatus createUser(@RequestBody UserWrapper user)
+	public @ResponseBody ResponseEntity<?> createUser(@RequestBody RegisterUser userToRegister)
 	{
-		System.out.println(user);
+		System.out.println(userToRegister);
 		try
 		{
 			postgreDAO.connect();
-			postgreDAO.storeNewUserInBBDD(user);
-			userService.getAllInformationUser(user.getUser().getId());
+			postgreDAO.storeNewUserInBBDD(userToRegister);
+			userService.getAllInformationUser(userToRegister.getUser().getId());
 
-			return HttpStatus.CREATED;
+			return new ResponseEntity<>(HttpStatus.CREATED);
 
 		} catch (InvalidInformationException e)
 		{
-			return HttpStatus.CONFLICT;
+			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (SQLException e)
 		{
-			return HttpStatus.SERVICE_UNAVAILABLE;
+			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 		}
 	}
 
+	// Metodo para explicar en la resentacion lo que trataba de hacer con Hateoas
+	//
+	// @RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
+	// public ResponseEntity<Collection<GameResource>>
+	// findAllGamesByUser(@PathVariable String userEmail)
+	// {
+	// postgreDAO.connect();
+	// List<Game> games = new ArrayList<>();
+	// try
+	// {
+	// games = postgreDAO.getAllGamesByUser(userEmail);
+	// return new ResponseEntity<>(gameAssembler.toResourceCollection(games),
+	// HttpStatus.OK);
+	// } catch (SQLException e)
+	// {
+	// e.printStackTrace();
+	// return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	// }
+	// }
 }
