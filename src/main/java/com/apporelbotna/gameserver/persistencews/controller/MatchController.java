@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
 import com.apporelbotna.gameserver.stubs.Match;
-import com.apporelbotna.gameserver.stubs.RegisterUser;
-import com.apporelbotna.gameserver.stubs.User;
 
 @RestController
 @ExposesResourceFor(Match.class)

@@ -30,7 +30,7 @@ dependencies {
     compileOnly 'org.springframework.hateoas:spring-hateoas:0.24.0.RELEASE'
 	
     // PersistenceWS Stubs
-    compile 'com.github.java-game-server:stubs:0.6.2'
+    compile 'com.github.java-game-server:stubs:1.0.0'
     
    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
 	compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.0.0.RELEASE'

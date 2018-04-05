@@ -17,15 +17,12 @@ public class UserService
 		postgreDAO = new PostgreDAO();
 	}
 
-
-
 	public User getAllInformationUser(String email) throws SQLException {
-		PostgreDAO postgreDao = new PostgreDAO();
-		postgreDao.connect();
-		User user = postgreDao.getUserBasicInformation(email);
+		postgreDAO.connect();
+		User user = postgreDAO.getUserBasicInformation(email);
 
 		if(user != null) {
-			user.setGames(postgreDao.getAllGamesByUser(email));
+			user.setGames(postgreDAO.getAllGamesByUser(email));
 		}
 
 		return user;

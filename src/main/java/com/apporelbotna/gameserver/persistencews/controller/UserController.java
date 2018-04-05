@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
-import com.apporelbotna.gameserver.persistencews.resource.GameResourceAssembler;
-import com.apporelbotna.gameserver.persistencews.resource.UserResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
@@ -35,11 +33,7 @@ public class UserController
 	@Autowired
 	private UserService userService;
 
-	@Autowired
-	private UserResourceAssembler userAssembler;
 
-	@Autowired
-	private GameResourceAssembler gameAssembler;
 
 	@RequestMapping(value = "/{email}", method = RequestMethod.GET)
 	public ResponseEntity<User> findUserByEmail(@PathVariable String email)
@@ -116,7 +110,8 @@ public class UserController
 		}
 	}
 
-
+//	@Autowired
+//	private GameResourceAssembler gameAssembler;
 
 	// Metodo para explicar en la resentacion lo que trataba de hacer con Hateoas
 	//
