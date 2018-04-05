@@ -99,7 +99,6 @@ public class UserController
 	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
 	public @ResponseBody ResponseEntity<?> createUser(@RequestBody RegisterUser userToRegister)
 	{
-		System.out.println(userToRegister);
 		try
 		{
 			postgreDAO.connect();

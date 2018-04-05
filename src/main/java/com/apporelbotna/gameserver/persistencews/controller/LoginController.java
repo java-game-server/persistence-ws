@@ -21,7 +21,6 @@ public class LoginController
 {
 	PostgreDAO postgreDAO = new PostgreDAO();
 
-	//TODO refactor: make this return sensible error if not found.
 	@RequestMapping(value = "/{email}/{password}", method = RequestMethod.GET)
 	public Token login(@PathVariable("email") String email, @PathVariable("password") String password)
 	{
@@ -32,7 +31,7 @@ public class LoginController
 			if (passwordUserDB.equals(password))
 			{
 				Token token = generateToken();
-				postgreDAO.storeTokenToUser(new User(email, ""), token);
+				postgreDAO.storeTokenToUser(new User(email), token);
 				return token;
 			}
 
@@ -43,9 +42,6 @@ public class LoginController
 		}
 		return null;
 	}
-
-
-
 
 
 	/**
