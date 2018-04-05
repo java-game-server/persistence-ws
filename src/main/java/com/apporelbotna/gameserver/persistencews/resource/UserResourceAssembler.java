@@ -17,8 +17,6 @@ public class UserResourceAssembler extends ResourceAssembler<User, UserResource>
 	private static final String UPDATE_REL = "update";
 	private static final String DELETE_REL = "delete";
 
-
-
 	@Override
 	public UserResource toResource(User user)
 	{

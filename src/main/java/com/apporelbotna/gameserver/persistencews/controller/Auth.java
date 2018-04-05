@@ -21,7 +21,6 @@ public class Auth
 {
 	PostgreDAO postgreDAO = new PostgreDAO();
 
-
 	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
 	public @ResponseBody ResponseEntity<?> isUserLoggeable(@RequestBody UserWrapper wrapper)
 	{
@@ -29,8 +28,9 @@ public class Auth
 
 		try
 		{
-			if(postgreDAO.isTokenValid(wrapper)) {
-				return new ResponseEntity<>( HttpStatus.OK);
+			if (postgreDAO.isTokenValid(wrapper))
+			{
+				return new ResponseEntity<>(HttpStatus.OK);
 			}
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (SQLException e1)

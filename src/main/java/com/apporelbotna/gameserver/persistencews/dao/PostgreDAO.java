@@ -18,7 +18,6 @@ import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
 import com.apporelbotna.gameserver.stubs.UserWrapper;
 
-
 /**
  * TODO To be documented
  */
@@ -42,16 +41,14 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	public User getUserBasicInformation(String email) throws SQLException
 	{
 		Statement st = conn.createStatement();
-		String select = "SELECT email, name, password FROM public.\"user\" where email = '" + email + "'";
+		String select = "SELECT email, name, password FROM public.\"user\" where email = '" + email
+				+ "'";
 		ResultSet rs = st.executeQuery(select);
 		User user = null;
 
 		if (rs.next())
 		{
-			user = new User(
-					rs.getString("email"),
-					rs.getString("name")
-					);
+			user = new User(rs.getString("email"), rs.getString("name"));
 		}
 
 		rs.close();
@@ -62,7 +59,8 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	/**
 	 * metodo que te saca todos los juegos de un usuario.
 	 *
-	 * @param email the primary key of the User
+	 * @param email
+	 *            the primary key of the User
 	 * @return
 	 * @throws SQLException
 	 */
@@ -72,20 +70,16 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		Statement st = conn.createStatement();
 		String select = "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description"
 				+ " FROM public.user_have_bought_game uhbg"
-				+ " INNER Join game g on g.id = uhbg.id_game"
-				+ " where email_user = '" + email + "'";
+				+ " INNER Join game g on g.id = uhbg.id_game" + " where email_user = '" + email
+				+ "'";
 		ResultSet rs = st.executeQuery(select);
 
 		List<Game> userGames = new ArrayList<>();
 
 		while (rs.next())
 		{
-			userGames.add(new Game(
-					rs.getInt("id_game"),
-					rs.getString("name"),
-					rs.getString("description")
-					)
-					);
+			userGames.add(new Game(rs.getInt("id_game"), rs.getString("name"),
+					rs.getString("description")));
 		}
 
 		rs.close();
@@ -120,19 +114,22 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	}
 
 	@Override
-	public float getTimePlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
+	public float getTimePlayedInGame(String email, int gameId)
+			throws SQLException, InvalidInformationException
 	{
-		if(getUserBasicInformation(email) == null) {
+		if (getUserBasicInformation(email) == null)
+		{
 			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
 
-		if(getGameById(gameId) == null) {
+		if (getGameById(gameId) == null)
+		{
 			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
 		}
 
 		String select = "select email_user, id_game, game_lenght "
-				+ "from public.user_historical_game "
-				+ "where email_user = '" + email + "' and id_game = " + gameId;
+				+ "from public.user_historical_game " + "where email_user = '" + email
+				+ "' and id_game = " + gameId;
 		Statement st = conn.createStatement();
 		ResultSet rs = st.executeQuery(select);
 
@@ -158,10 +155,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		Game game = null;
 		if (rs.next())
 		{
-			game = new Game(rs.getInt("id"),
-							rs.getString("name"),
-							rs.getString("description")
-							);
+			game = new Game(rs.getInt("id"), rs.getString("name"), rs.getString("description"));
 		}
 
 		rs.close();
@@ -173,13 +167,14 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
 	{
 		Statement st = conn.createStatement();
-		String select = "SELECT token, user_email\r\n" +
-				"	FROM public.token where token = '" + userWrapper.getToken().getTokenName() +
-				"' and user_email = '" + userWrapper.getUser().getEmail() +"';";
+		String select = "SELECT token, user_email\r\n" + "	FROM public.token where token = '"
+				+ userWrapper.getToken().getTokenName() + "' and user_email = '"
+				+ userWrapper.getUser().getEmail() + "';";
 		ResultSet rs = st.executeQuery(select);
 
 		boolean existe = false;
-		if (rs.next()) {
+		if (rs.next())
+		{
 			existe = true;
 		}
 		rs.close();
@@ -187,33 +182,28 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		return existe;
 	}
 
-
 	@Override
-	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame) throws SQLException, InvalidInformationException
+	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame)
+			throws SQLException, InvalidInformationException
 	{
 		Game game = getGameById(idGame);
 
-		if(game == null) {
+		if (game == null)
+		{
 			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
 		}
 
 		Statement st = conn.createStatement();
 		String select = "select email_user, sum(puntuation) as puntuation"
-				+ " from public.user_historical_game"
-				+ " where id_game = " + idGame
+				+ " from public.user_historical_game" + " where id_game = " + idGame
 				+ " group by email_user";
 		ResultSet rs = st.executeQuery(select);
 
 		List<RankingPointsTO> ranking = new ArrayList<>();
 		while (rs.next())
 		{
-			ranking.add(
-					new RankingPointsTO(
-							rs.getString("email_user"),
-							rs.getRow(),
-							rs.getInt("puntuation")
-							)
-					);
+			ranking.add(new RankingPointsTO(rs.getString("email_user"), rs.getRow(),
+					rs.getInt("puntuation")));
 		}
 
 		rs.close();
@@ -221,7 +211,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 
 		return ranking;
 	}
-
 
 	/*************************** Insert ********************************/
 
@@ -232,7 +221,8 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	 * @throws SQLException
 	 */
 	@Override
-	public void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException, SQLException
+	public void storeNewUserInBBDD(RegisterUser userToRegister)
+			throws InvalidInformationException, SQLException
 	{
 		User user = userToRegister.getUser();
 		if (getUserBasicInformation(user.getId()) != null)
@@ -250,16 +240,17 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	}
 
 	/**
-	 * Store new token to one user.
-	 * It checks if the user exist
+	 * Store new token to one user. It checks if the user exist
 	 *
 	 * @param user
 	 * @param token
-	 * @throws InvalidInformationException if the user is stored
+	 * @throws InvalidInformationException
+	 *             if the user is stored
 	 * @throws SQLException
 	 */
 	@Override
-	public void storeTokenToUser(User user, Token token) throws InvalidInformationException, SQLException
+	public void storeTokenToUser(User user, Token token)
+			throws InvalidInformationException, SQLException
 	{
 		if (getUserBasicInformation(user.getId()) == null)
 		{
@@ -275,7 +266,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		preparedStatement.close();
 	}
 
-
 	/**
 	 * @param match
 	 * @throws SQLException
@@ -285,18 +275,19 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	public void storeNewMatch(Match match) throws SQLException, InvalidInformationException
 	{
 		User user = getUserBasicInformation(match.getEmailUser());
-		if(user == null) {
+		if (user == null)
+		{
 			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
 
 		Game game = getGameById(match.getIdGame());
-		if(game == null) {
+		if (game == null)
+		{
 			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
 		}
 
 		String query = "INSERT INTO public.user_historical_game"
-				+ " (email_user, id_game, game_lenght, puntuation)"
-				+ " VALUES (?, ?, ?, ?);";
+				+ " (email_user, id_game, game_lenght, puntuation)" + " VALUES (?, ?, ?, ?);";
 
 		PreparedStatement preparedStatement = conn.prepareStatement(query);
 		preparedStatement.setString(1, match.getEmailUser());

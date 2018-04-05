@@ -19,23 +19,28 @@ import com.apporelbotna.gameserver.stubs.Match;
 @RestController
 @ExposesResourceFor(Match.class)
 @RequestMapping(value = "/match", produces = "application/json")
-public class MatchController {
+public class MatchController
+{
 
 	@Autowired
 	private PostgreDAO postgreDAO;
 
 	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity<?> storeMatchGame(@RequestBody Match match) {
+	public @ResponseBody ResponseEntity<?> storeMatchGame(@RequestBody Match match)
+	{
 
 		postgreDAO.connect();
-		try {
+		try
+		{
 			postgreDAO.storeNewMatch(match);
 			System.out.println("ok");
 			return new ResponseEntity<>(HttpStatus.CREATED);
 
-		} catch (InvalidInformationException e) {
+		} catch (InvalidInformationException e)
+		{
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
-		} catch (SQLException e) {
+		} catch (SQLException e)
+		{
 			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
 		}
 

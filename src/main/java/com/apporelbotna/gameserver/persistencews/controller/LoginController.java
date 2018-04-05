@@ -22,7 +22,8 @@ public class LoginController
 	PostgreDAO postgreDAO = new PostgreDAO();
 
 	@RequestMapping(value = "/{email}/{password}", method = RequestMethod.GET)
-	public Token login(@PathVariable("email") String email, @PathVariable("password") String password)
+	public Token login(@PathVariable("email") String email,
+			@PathVariable("password") String password)
 	{
 		postgreDAO.connect();
 		try
@@ -43,7 +44,6 @@ public class LoginController
 		return null;
 	}
 
-
 	/**
 	 * Apply an algorithm to create a new token.
 	 *
@@ -53,6 +53,6 @@ public class LoginController
 	{
 		String randomToken = UUID.randomUUID().toString();
 		randomToken = randomToken.replaceAll("-", "");
-		return  new Token(randomToken);
+		return new Token(randomToken);
 	}
 }

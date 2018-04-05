@@ -33,8 +33,6 @@ public class UserController
 	@Autowired
 	private UserService userService;
 
-
-
 	@RequestMapping(value = "/{email}", method = RequestMethod.GET)
 	public ResponseEntity<User> findUserByEmail(@PathVariable String email)
 	{
@@ -68,8 +66,8 @@ public class UserController
 	}
 
 	@RequestMapping(value = "{email}/game/{game}/time/", method = RequestMethod.GET)
-	public ResponseEntity<Float> getTimePlayedByUsername(
-			@PathVariable String email, @PathVariable int game)
+	public ResponseEntity<Float> getTimePlayedByUsername(@PathVariable String email,
+			@PathVariable int game)
 	{
 		postgreDAO.connect();
 		try
@@ -110,8 +108,8 @@ public class UserController
 		}
 	}
 
-//	@Autowired
-//	private GameResourceAssembler gameAssembler;
+	// @Autowired
+	// private GameResourceAssembler gameAssembler;
 
 	// Metodo para explicar en la resentacion lo que trataba de hacer con Hateoas
 	//

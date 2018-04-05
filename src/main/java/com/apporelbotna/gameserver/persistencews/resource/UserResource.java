@@ -13,13 +13,13 @@ public class UserResource extends ResourceSupport
 	private final String name;
 	private final List<Game> games;
 
-	public UserResource(User user)
+	public UserResource(
+						User user)
 	{
 		this.name = user.getName();
 		this.email = user.getId();
 		this.games = user.getGames();
 	}
-
 
 	public String getEmail()
 	{
@@ -35,7 +35,6 @@ public class UserResource extends ResourceSupport
 	{
 		return games;
 	}
-
 
 	@Override
 	public int hashCode()

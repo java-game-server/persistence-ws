@@ -25,7 +25,6 @@ public class GameResource extends ResourceSupport
 		return identifiable;
 	}
 
-
 	public String getName()
 	{
 		return name;
@@ -73,8 +72,5 @@ public class GameResource extends ResourceSupport
 		}
 		return true;
 	}
-
-
-
 
 }

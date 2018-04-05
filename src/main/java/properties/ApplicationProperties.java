@@ -24,7 +24,8 @@ public final class ApplicationProperties
 	static
 	{
 		String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-		String applicationPropertiesPath = rootPath + "com\\apporelbotna\\gameserver\\persistencewsclient\\properties\\application.properties";
+		String applicationPropertiesPath = rootPath
+				+ "com\\apporelbotna\\gameserver\\persistencewsclient\\properties\\application.properties";
 
 		Properties applicationProperties = new Properties();
 		try
@@ -34,8 +35,7 @@ public final class ApplicationProperties
 			name = applicationProperties.getProperty("name");
 
 			serverUrl = applicationProperties.getProperty("server.url");
-		}
-		catch (IOException e)
+		} catch (IOException e)
 		{
 			logger.error(e.getMessage());
 		}
