@@ -101,7 +101,7 @@ public class UserController
 
 		} catch (InvalidInformationException e)
 		{
-			return new ResponseEntity<>(HttpStatus.CONFLICT);
+			return new ResponseEntity<>(HttpStatus.ALREADY_REPORTED);
 		} catch (SQLException e)
 		{
 			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
