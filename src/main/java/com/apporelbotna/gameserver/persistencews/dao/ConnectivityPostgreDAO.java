@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ConnectivityPostgreDAO implements Connectivity
 {
-    private static final Logger logger = LoggerFactory.getLogger(ConnectivityPostgreDAO.class);
+    private static final Logger logger = LoggerFactory.getLogger( ConnectivityPostgreDAO.class );
 
     private static final String URL = "jdbc:postgresql://localhost/AppOrElBotnaGameClient";
     private static final String DB_USER = "root";
@@ -23,11 +23,11 @@ public class ConnectivityPostgreDAO implements Connectivity
     {
 	try
 	{
-	    conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD);
-	    logger.debug("Connected to the PostgreSQL server successfully.");
-	} catch (SQLException e)
+	    conn = DriverManager.getConnection( URL, DB_USER, DB_PASSWORD );
+	    logger.debug( "Connected to the PostgreSQL server successfully." );
+	} catch ( SQLException e )
 	{
-	    logger.error(e.getMessage());
+	    logger.error( e.getMessage() );
 	}
 	return conn;
     }

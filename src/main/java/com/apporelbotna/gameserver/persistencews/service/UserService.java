@@ -10,23 +10,23 @@ import com.apporelbotna.gameserver.stubs.User;
 @Service
 public class UserService
 {
-	private PostgreDAO postgreDAO;
+    private PostgreDAO postgreDAO;
 
-	public UserService()
+    public UserService()
+    {
+	postgreDAO = new PostgreDAO();
+    }
+
+    public User getAllInformationUser(String email) throws SQLException
+    {
+	postgreDAO.connect();
+	User user = postgreDAO.getUserBasicInformation( email );
+
+	if ( user != null )
 	{
-		postgreDAO = new PostgreDAO();
+	    user.setGames( postgreDAO.getAllGamesByUser( email ) );
 	}
 
-	public User getAllInformationUser(String email) throws SQLException
-	{
-		postgreDAO.connect();
-		User user = postgreDAO.getUserBasicInformation(email);
-
-		if (user != null)
-		{
-			user.setGames(postgreDAO.getAllGamesByUser(email));
-		}
-
-		return user;
-	}
+	return user;
+    }
 }

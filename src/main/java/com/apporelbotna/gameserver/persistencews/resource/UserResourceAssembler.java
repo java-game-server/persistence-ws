@@ -8,27 +8,27 @@ import org.springframework.stereotype.Component;
 import com.apporelbotna.gameserver.stubs.User;
 
 @Component
-public class UserResourceAssembler extends ResourceAssembler<User, UserResource>
+public class UserResourceAssembler extends ResourceAssembler< User , UserResource >
 {
 
-	@Autowired
-	protected EntityLinks entityLinks;
+    @Autowired
+    protected EntityLinks entityLinks;
 
-	private static final String UPDATE_REL = "update";
-	private static final String DELETE_REL = "delete";
+    private static final String UPDATE_REL = "update";
+    private static final String DELETE_REL = "delete";
 
-	@Override
-	public UserResource toResource(User user)
-	{
-		UserResource userResource = new UserResource(user);
+    @Override
+    public UserResource toResource(User user)
+    {
+	UserResource userResource = new UserResource( user );
 
-		final Link selfLink = entityLinks.linkToSingleResource(user);
+	final Link selfLink = entityLinks.linkToSingleResource( user );
 
-		userResource.add(selfLink.withSelfRel());
-		userResource.add(selfLink.withRel(UPDATE_REL));
-		userResource.add(selfLink.withRel(DELETE_REL));
+	userResource.add( selfLink.withSelfRel() );
+	userResource.add( selfLink.withRel( UPDATE_REL ) );
+	userResource.add( selfLink.withRel( DELETE_REL ) );
 
-		return userResource;
-	}
+	return userResource;
+    }
 
 }

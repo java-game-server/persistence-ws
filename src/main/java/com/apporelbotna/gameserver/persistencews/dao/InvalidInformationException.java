@@ -14,7 +14,8 @@ public class InvalidInformationException extends Exception
 
 	private String msg;
 
-	private Reason(String msg)
+	private Reason(
+		       String msg)
 	{
 	    this.msg = msg;
 	}
@@ -26,8 +27,9 @@ public class InvalidInformationException extends Exception
 
     }
 
-    public InvalidInformationException(Reason reason)
+    public InvalidInformationException(
+				       Reason reason)
     {
-	super(reason.msg);
+	super( reason.msg );
     }
 }

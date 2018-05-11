@@ -18,18 +18,14 @@ import com.apporelbotna.gameserver.stubs.Match;
 
 @RestController
 @ExposesResourceFor(Match.class)
-@RequestMapping(
-		value = "/match",
-		produces = "application/json")
+@RequestMapping(value = "/match", produces = "application/json")
 public class MatchController
 {
 
     @Autowired
     private PostgreDAO postgreDAO;
 
-    @RequestMapping(
-		    method = RequestMethod.POST,
-		    consumes = "application/json")
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public @ResponseBody ResponseEntity< ? > storeMatchGame(@RequestBody Match match)
     {
 
