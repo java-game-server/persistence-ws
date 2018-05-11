@@ -18,31 +18,37 @@ import com.apporelbotna.gameserver.stubs.Match;
 
 @RestController
 @ExposesResourceFor(Match.class)
-@RequestMapping(value = "/match", produces = "application/json")
+@RequestMapping(
+		value = "/match",
+		produces = "application/json")
 public class MatchController
 {
 
-	@Autowired
-	private PostgreDAO postgreDAO;
+    @Autowired
+    private PostgreDAO postgreDAO;
 
-	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity<?> storeMatchGame(@RequestBody Match match)
+    @RequestMapping(
+		    method = RequestMethod.POST,
+		    consumes = "application/json")
+    public @ResponseBody ResponseEntity< ? > storeMatchGame(@RequestBody Match match)
+    {
+
+	postgreDAO.connect();
+	try
 	{
+	    postgreDAO.storeNewMatch( match );
+	    System.out.println( "ok" );
+	    return new ResponseEntity<>( HttpStatus.CREATED );
 
-		postgreDAO.connect();
-		try
-		{
-			postgreDAO.storeNewMatch(match);
-			System.out.println("ok");
-			return new ResponseEntity<>(HttpStatus.CREATED);
-
-		} catch (InvalidInformationException e)
-		{
-			return new ResponseEntity<>(HttpStatus.CONFLICT);
-		} catch (SQLException e)
-		{
-			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-		}
-
+	} catch ( InvalidInformationException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.CONFLICT );
+	} catch ( SQLException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
 	}
+
+    }
 }

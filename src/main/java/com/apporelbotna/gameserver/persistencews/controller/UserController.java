@@ -2,6 +2,7 @@ package com.apporelbotna.gameserver.persistencews.controller;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
+import com.apporelbotna.gameserver.persistencews.resource.GameResource;
+import com.apporelbotna.gameserver.persistencews.resource.GameResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
@@ -27,107 +30,91 @@ import com.apporelbotna.gameserver.stubs.User;
 @RequestMapping(value = "/user", produces = "application/json")
 public class UserController
 {
-	@Autowired
-	private PostgreDAO postgreDAO;
+    @Autowired
+    private PostgreDAO postgreDAO;
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@RequestMapping(value = "/{email}", method = RequestMethod.GET)
-	public ResponseEntity<User> findUserByEmail(@PathVariable String email)
+    @RequestMapping(value = "/{email}", method = RequestMethod.GET)
+    public ResponseEntity< User > findUserByEmail(@PathVariable String email)
+    {
+	User user = null;
+	try
 	{
-		User user = null;
-		try
-		{
-			user = userService.getAllInformationUser(email);
-			return new ResponseEntity<>(user, HttpStatus.OK);
-
-		} catch (SQLException e)
-		{
-			// Log
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
-
-	@RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
-	public ResponseEntity<List<Game>> findAllGamesByUser(@PathVariable String userEmail)
+	    user = userService.getAllInformationUser( email );
+	    return new ResponseEntity<>( user,
+					 HttpStatus.OK );
+	} catch ( SQLException e )
 	{
-		postgreDAO.connect();
-		List<Game> games = new ArrayList<>();
-		try
-		{
-			games = postgreDAO.getAllGamesByUser(userEmail);
-			return new ResponseEntity<>(games, HttpStatus.OK);
-		} catch (SQLException e)
-		{
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
 	}
+    }
 
-	@RequestMapping(value = "{email}/game/{game}/time/", method = RequestMethod.GET)
-	public ResponseEntity<Float> getTimePlayedByUsername(@PathVariable String email,
-			@PathVariable int game)
+    @RequestMapping(value = "{email}/game/{game}/time/", method = RequestMethod.GET)
+    public ResponseEntity< Float > getTimePlayedByUsername(@PathVariable String email, @PathVariable int game)
+    {
+	postgreDAO.connect();
+	try
 	{
-		postgreDAO.connect();
-		try
-		{
-			float time = postgreDAO.getTimePlayedInGame(email, game);
-			return new ResponseEntity<>(time, HttpStatus.ACCEPTED);
+	    float time = postgreDAO.getTimePlayedInGame( email, game );
+	    return new ResponseEntity<>( time,
+					 HttpStatus.ACCEPTED );
 
-		} catch (SQLException | InvalidInformationException e)
-		{
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Create a new User
-	 *
-	 * @param user
-	 * @return
-	 */
-	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-	public @ResponseBody ResponseEntity<?> createUser(@RequestBody RegisterUser userToRegister)
+	} catch ( SQLException | InvalidInformationException e )
 	{
-		try
-		{
-			postgreDAO.connect();
-			postgreDAO.storeNewUserInBBDD(userToRegister);
-			userService.getAllInformationUser(userToRegister.getUser().getId());
-
-			return new ResponseEntity<>(HttpStatus.CREATED);
-
-		} catch (InvalidInformationException e)
-		{
-			return new ResponseEntity<>(HttpStatus.ALREADY_REPORTED);
-		} catch (SQLException e)
-		{
-			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
-		}
+	    e.printStackTrace();
+	    return null;
 	}
+    }
 
-	// @Autowired
-	// private GameResourceAssembler gameAssembler;
+    /**
+     * Create a new User
+     *
+     * @param user
+     * @return
+     */
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
+    public @ResponseBody ResponseEntity< ? > createUser(@RequestBody RegisterUser userToRegister)
+    {
+	try
+	{
+	    postgreDAO.connect();
+	    postgreDAO.storeNewUserInBBDD( userToRegister );
+	    userService.getAllInformationUser( userToRegister.getUser().getId() );
 
-	// Metodo para explicar en la resentacion lo que trataba de hacer con Hateoas
-	//
-	// @RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
-	// public ResponseEntity<Collection<GameResource>>
-	// findAllGamesByUser(@PathVariable String userEmail)
-	// {
-	// postgreDAO.connect();
-	// List<Game> games = new ArrayList<>();
-	// try
-	// {
-	// games = postgreDAO.getAllGamesByUser(userEmail);
-	// return new ResponseEntity<>(gameAssembler.toResourceCollection(games),
-	// HttpStatus.OK);
-	// } catch (SQLException e)
-	// {
-	// e.printStackTrace();
-	// return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	// }
-	// }
+	    return new ResponseEntity<>( HttpStatus.CREATED );
+
+	} catch ( InvalidInformationException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.ALREADY_REPORTED );
+	} catch ( SQLException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
+	}
+    }
+
+    @Autowired
+    private GameResourceAssembler gameAssembler;
+
+    @RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
+    public ResponseEntity< Collection< GameResource > > findAllGamesByUser(@PathVariable String userEmail)
+    {
+	postgreDAO.connect();
+	List< Game > games = new ArrayList<>();
+	try
+	{
+	    games = postgreDAO.getAllGamesByUser( userEmail );
+	    return new ResponseEntity<>( gameAssembler.toResourceCollection( games ),
+					 HttpStatus.OK );
+	} catch ( SQLException e )
+	{
+	    e.printStackTrace();
+	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
+	}
+    }
+
 }

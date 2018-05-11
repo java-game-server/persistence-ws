@@ -3,7 +3,6 @@ package com.apporelbotna.gameserver.persistencews.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,278 +23,274 @@ import com.apporelbotna.gameserver.stubs.UserWrapper;
 @Repository
 public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 {
-	public PostgreDAO()
-	{
+    public PostgreDAO()
+    {
+	// empty constructor
+    }
+    /*************************** Selects ***********************************/
 
+    // TODO check bechavior after refactor
+    /**
+     * @param email
+     *            the primaryKey of the user.
+     * @return user if exist or null.
+     * @throws SQLException
+     */
+    @Override
+    public User getUserBasicInformation(String email) throws SQLException
+    {
+	String select = "SELECT email, name, password FROM public.\"user\" where email = ? ";
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	{
+	    prepareStatement.setString( 1, email );
+	    prepareStatement.execute();
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery( select ) )
+	    {
+		if ( executeQuery.next() )
+		{
+		    return new User( executeQuery.getString( "email" ),
+				     executeQuery.getString( "name" ) );
+		}
+	    }
+	}
+	return null;
+    }
+
+    /**
+     * metodo que te saca todos los juegos de un usuario.
+     *
+     * @param email
+     *            the primary key of the User
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    public List< Game > getAllGamesByUser(String email) throws SQLException
+    {
+	String select = "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description, g.executable_name, g.img_uri"
+			+ " FROM public.user_have_bought_game uhbg" + " INNER Join game g on g.id = uhbg.id_game"
+			+ " where email_user = ?";
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	{
+	    prepareStatement.setString( 1, email );
+	    List< Game > userGames = new ArrayList<>();
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
+	    {
+		while ( executeQuery.next() )
+		{
+		    userGames.add( new Game( executeQuery.getInt( "id_game" ),
+					     executeQuery.getString( "name" ),
+					     executeQuery.getString( "description" ),
+					     executeQuery.getString( "executable_name" ),
+					     executeQuery.getString( "img_uri" ) ) );
+		}
+	    }
+	    return userGames;
+	}
+    }
+
+    /**
+     * TODO mirar si se puede combinar con la funcion getUserInformation sin guardar
+     * en el stub User la password
+     *
+     * @param email
+     * @return the password of the user if exists or null
+     * @throws SQLException
+     */
+    @Override
+    public String getUserPassword(String email) throws SQLException
+    {
+	String select = "SELECT password FROM public.user where email = ?";
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	{
+	    prepareStatement.setString( 1, email );
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
+	    {
+		if ( executeQuery.next() )
+		{
+		    return executeQuery.getString( "password" );
+		}
+	    }
+	}
+	return null;
+    }
+
+    @Override
+    public float getTimePlayedInGame(String email, int gameId) throws SQLException,
+							       InvalidInformationException
+    {
+	if ( getUserBasicInformation( email ) == null )
+	{
+	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
+	}
+	if ( getGameById( gameId ) == null )
+	{
+	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
 	}
 
-	/*************************** Selects ***********************************/
-
-	/**
-	 * @param email
-	 *            the primaryKey of the user.
-	 * @return user if exist or null.
-	 * @throws SQLException
-	 */
-	@Override
-	public User getUserBasicInformation(String email) throws SQLException
+	String select = "select email_user, id_game, game_lenght " + "from public.user_historical_game "
+			+ "where email_user = ? and id_game = ?";
+	float totalTime = 0.0f;
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
 	{
-		Statement st = conn.createStatement();
-		String select = "SELECT email, name, password FROM public.\"user\" where email = '" + email
-				+ "'";
-		ResultSet rs = st.executeQuery(select);
-		User user = null;
+	    prepareStatement.setString( 1, email );
+	    prepareStatement.setInt( 1, gameId );
 
-		if (rs.next())
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
+	    {
+		while ( executeQuery.next() )
 		{
-			user = new User(rs.getString("email"), rs.getString("name"));
+		    totalTime += executeQuery.getFloat( "game_lenght" );
 		}
+	    }
+	}
+	return totalTime;
+    }
 
-		rs.close();
-		st.close();
-		return user;
+    @Override
+    public Game getGameById(int idGame) throws SQLException
+    {
+	String select = "select * from public.game where id = ?";
+	Game game = null;
+
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	{
+	    prepareStatement.setInt( 1, idGame );
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
+	    {
+		if ( executeQuery.next() )
+		{
+		    game = new Game( executeQuery.getInt( "id" ),
+				     executeQuery.getString( "name" ),
+				     executeQuery.getString( "description" ),
+				     executeQuery.getString( "executable_name" ),
+				     executeQuery.getString( "img_uri" ) );
+		}
+	    }
+	}
+	return game;
+    }
+
+    @Override
+    public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
+    {
+
+	String select = "SELECT token, user_email FROM public.token where token = ? and user_email = ?";
+
+	boolean existe = false;
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	{
+	    prepareStatement.setString( 1, userWrapper.getToken().getTokenName() );
+	    prepareStatement.setString( 2, userWrapper.getUser().getEmail() );
+
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
+	    {
+		if ( executeQuery.next() )
+		{
+		    existe = true;
+		}
+	    }
+	}
+	return existe;
+    }
+
+    @Override
+    public List< RankingPointsTO > getRankingUsersGameByPoints(int idGame) throws SQLException,
+									   InvalidInformationException
+    {
+	Game game = getGameById( idGame );
+	if ( game == null )
+	{
+	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
 	}
 
-	/**
-	 * metodo que te saca todos los juegos de un usuario.
-	 *
-	 * @param email
-	 *            the primary key of the User
-	 * @return
-	 * @throws SQLException
-	 */
-	@Override
-	public List<Game> getAllGamesByUser(String email) throws SQLException
+	String select = "select email_user, sum(puntuation) as puntuation" + " from public.user_historical_game"
+			+ " where id_game = ? group by email_user";
+
+	List< RankingPointsTO > ranking = new ArrayList<>();
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
 	{
-		Statement st = conn.createStatement();
-		String select = "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description"
-				+ " FROM public.user_have_bought_game uhbg"
-				+ " INNER Join game g on g.id = uhbg.id_game" + " where email_user = '" + email
-				+ "'";
-		ResultSet rs = st.executeQuery(select);
+	    prepareStatement.setInt( 1, idGame );
 
-		List<Game> userGames = new ArrayList<>();
-
-		while (rs.next())
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery( select ); )
+	    {
+		while ( executeQuery.next() )
 		{
-			userGames.add(new Game(rs.getInt("id_game"), rs.getString("name"),
-					rs.getString("description")));
+		    ranking.add( new RankingPointsTO( executeQuery.getString( "email_user" ),
+						      executeQuery.getRow(),
+						      executeQuery.getInt( "puntuation" ) ) );
 		}
+	    }
+	}
+	return ranking;
+    }
 
-		rs.close();
-		st.close();
+    /*************************** Insert ********************************/
 
-		return userGames;
+    @Override
+    public void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException,
+								SQLException
+    {
+	User user = userToRegister.getUser();
+	if ( getUserBasicInformation( user.getId() ) != null )
+	{
+	    throw new InvalidInformationException( Reason.USER_IS_STORED );
 	}
 
-	/**
-	 * TODO mirar si se puede combinar con la funcion getUserInformation sin guardar
-	 * en el stub User la password
-	 *
-	 * @param email
-	 * @return the password of the user if exists or null
-	 * @throws SQLException
-	 */
-	@Override
-	public String getUserPassword(String email) throws SQLException
+	String query = "INSERT INTO public.\"user\"(email, name, password)	VALUES (?, ?, ?)";
+	try ( PreparedStatement preparedStatement = conn.prepareStatement( query ); )
 	{
-		String select = "SELECT password FROM public.user where email = '" + email + "'";
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery(select);
-		String password = null;
-		if (rs.next())
-		{
-			password = rs.getString("password");
-		}
-
-		rs.close();
-		st.close();
-		return password;
+	    preparedStatement.setString( 1, user.getId() );
+	    preparedStatement.setString( 2, user.getName() );
+	    preparedStatement.setString( 3, userToRegister.getPassword() );
+	    preparedStatement.executeUpdate();
 	}
+    }
 
-	@Override
-	public float getTimePlayedInGame(String email, int gameId)
-			throws SQLException, InvalidInformationException
+    @Override
+    public void storeTokenToUser(User user, Token token) throws InvalidInformationException,
+							 SQLException
+    {
+	if ( getUserBasicInformation( user.getId() ) == null )
 	{
-		if (getUserBasicInformation(email) == null)
-		{
-			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
-		}
-
-		if (getGameById(gameId) == null)
-		{
-			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
-		}
-
-		String select = "select email_user, id_game, game_lenght "
-				+ "from public.user_historical_game " + "where email_user = '" + email
-				+ "' and id_game = " + gameId;
-		Statement st = conn.createStatement();
-		ResultSet rs = st.executeQuery(select);
-
-		float totalTime = 0.0f;
-		while (rs.next())
-		{
-			totalTime += rs.getFloat("game_lenght");
-		}
-
-		rs.close();
-		st.close();
-
-		return totalTime;
+	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
 	}
-
-	@Override
-	public Game getGameById(int idGame) throws SQLException
+	String query = "INSERT INTO public.token (token, user_email) VALUES (?, ?);";
+	try ( PreparedStatement preparedStatement = conn.prepareStatement( query ); )
 	{
-		Statement st = conn.createStatement();
-		String select = "select * from public.game where id = " + idGame;
-		ResultSet rs = st.executeQuery(select);
-
-		Game game = null;
-		if (rs.next())
-		{
-			game = new Game(rs.getInt("id"), rs.getString("name"), rs.getString("description"));
-		}
-
-		rs.close();
-		st.close();
-		return game;
+	    preparedStatement.setString( 1, token.getTokenName() );
+	    preparedStatement.setString( 2, user.getId() );
+	    preparedStatement.executeUpdate();
 	}
+    }
 
-	@Override
-	public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
+    /**
+     * @param match
+     * @throws SQLException
+     * @throws InvalidInformationException
+     */
+    @Override
+    public void storeNewMatch(Match match) throws InvalidInformationException, SQLException
+    {
+	User user = getUserBasicInformation( match.getEmailUser() );
+	if ( user == null )
 	{
-		Statement st = conn.createStatement();
-		String select = "SELECT token, user_email\r\n" + "	FROM public.token where token = '"
-				+ userWrapper.getToken().getTokenName() + "' and user_email = '"
-				+ userWrapper.getUser().getEmail() + "';";
-		ResultSet rs = st.executeQuery(select);
-
-		boolean existe = false;
-		if (rs.next())
-		{
-			existe = true;
-		}
-		rs.close();
-		st.close();
-		return existe;
+	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
 	}
-
-	@Override
-	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame)
-			throws SQLException, InvalidInformationException
+	Game game = getGameById( match.getIdGame() );
+	if ( game == null )
 	{
-		Game game = getGameById(idGame);
-
-		if (game == null)
-		{
-			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
-		}
-
-		Statement st = conn.createStatement();
-		String select = "select email_user, sum(puntuation) as puntuation"
-				+ " from public.user_historical_game" + " where id_game = " + idGame
-				+ " group by email_user";
-		ResultSet rs = st.executeQuery(select);
-
-		List<RankingPointsTO> ranking = new ArrayList<>();
-		while (rs.next())
-		{
-			ranking.add(new RankingPointsTO(rs.getString("email_user"), rs.getRow(),
-					rs.getInt("puntuation")));
-		}
-
-		rs.close();
-		st.close();
-
-		return ranking;
+	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
 	}
-
-	/*************************** Insert ********************************/
-
-	/**
-	 * @param userWrapper
-	 * @param password
-	 * @throws InvalidInformationException
-	 * @throws SQLException
-	 */
-	@Override
-	public void storeNewUserInBBDD(RegisterUser userToRegister)
-			throws InvalidInformationException, SQLException
+	String query = "INSERT INTO public.user_historical_game" + " (email_user, id_game, game_lenght, puntuation)"
+		       + " VALUES (?, ?, ?, ?);";
+	try ( PreparedStatement preparedStatement = conn.prepareStatement( query ) )
 	{
-		User user = userToRegister.getUser();
-		if (getUserBasicInformation(user.getId()) != null)
-		{
-			throw new InvalidInformationException(Reason.USER_IS_STORED);
-		}
-		String query = "INSERT INTO public.\"user\"(email, name, password)	VALUES (?, ?, ?)";
-
-		PreparedStatement preparedStatement = conn.prepareStatement(query);
-		preparedStatement.setString(1, user.getId());
-		preparedStatement.setString(2, user.getName());
-		preparedStatement.setString(3, userToRegister.getPassword());
-		preparedStatement.executeUpdate();
-		preparedStatement.close();
+	    preparedStatement.setString( 1, match.getEmailUser() );
+	    preparedStatement.setInt( 2, match.getIdGame() );
+	    preparedStatement.setLong( 3, ( long ) match.getGameTimeInSeconds() );
+	    preparedStatement.setInt( 4, match.getScore() );
+	    preparedStatement.executeUpdate();
 	}
-
-	/**
-	 * Store new token to one user. It checks if the user exist
-	 *
-	 * @param user
-	 * @param token
-	 * @throws InvalidInformationException
-	 *             if the user is stored
-	 * @throws SQLException
-	 */
-	@Override
-	public void storeTokenToUser(User user, Token token)
-			throws InvalidInformationException, SQLException
-	{
-		if (getUserBasicInformation(user.getId()) == null)
-		{
-			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
-		}
-
-		String query = "INSERT INTO public.token (token, user_email) VALUES (?, ?);";
-
-		PreparedStatement preparedStatement = conn.prepareStatement(query);
-		preparedStatement.setString(1, token.getTokenName());
-		preparedStatement.setString(2, user.getId());
-		preparedStatement.executeUpdate();
-		preparedStatement.close();
-	}
-
-	/**
-	 * @param match
-	 * @throws SQLException
-	 * @throws InvalidInformationException
-	 */
-	@Override
-	public void storeNewMatch(Match match) throws SQLException, InvalidInformationException
-	{
-		User user = getUserBasicInformation(match.getEmailUser());
-		if (user == null)
-		{
-			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
-		}
-
-		Game game = getGameById(match.getIdGame());
-		if (game == null)
-		{
-			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
-		}
-
-		String query = "INSERT INTO public.user_historical_game"
-				+ " (email_user, id_game, game_lenght, puntuation)" + " VALUES (?, ?, ?, ?);";
-
-		PreparedStatement preparedStatement = conn.prepareStatement(query);
-		preparedStatement.setString(1, match.getEmailUser());
-		preparedStatement.setInt(2, match.getIdGame());
-		preparedStatement.setLong(3, (long) match.getGameTimeInSeconds());
-		preparedStatement.setInt(4, match.getScore());
-		preparedStatement.executeUpdate();
-		preparedStatement.close();
-	}
-
+    }
 }
