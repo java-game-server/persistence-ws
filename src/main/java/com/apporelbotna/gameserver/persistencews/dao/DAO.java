@@ -25,7 +25,7 @@ public interface DAO
      * @return
      * @throws SQLException
      */
-    List<Game> getAllGamesByUser(String email) throws SQLException;
+    List< Game > getAllGamesByUser(String email) throws SQLException;
 
     /**
      * @param email
@@ -41,7 +41,8 @@ public interface DAO
      * @throws SQLException
      * @throws InvalidInformationException
      */
-    float getTimePlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException;
+    float getTimePlayedInGame(String email, int gameId) throws SQLException,
+							InvalidInformationException;
 
     /**
      * @param idGame
@@ -56,14 +57,16 @@ public interface DAO
      * @throws SQLException
      * @throws InvalidInformationException
      */
-    List<RankingPointsTO> getRankingUsersGameByPoints(int idGame) throws SQLException, InvalidInformationException;
+    List< RankingPointsTO > getRankingUsersGameByPoints(int idGame) throws SQLException,
+								    InvalidInformationException;
 
     /**
      * @param userToRegister
      * @throws InvalidInformationException
      * @throws SQLException
      */
-    void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException, SQLException;
+    void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException,
+							 SQLException;
 
     /**
      * @param user
@@ -71,14 +74,16 @@ public interface DAO
      * @throws InvalidInformationException
      * @throws SQLException
      */
-    void storeTokenToUser(User user, Token token) throws InvalidInformationException, SQLException;
+    void storeTokenToUser(User user, Token token) throws InvalidInformationException,
+						  SQLException;
 
     /**
      * @param match
      * @throws SQLException
      * @throws InvalidInformationException
      */
-    void storeNewMatch(Match match) throws SQLException, InvalidInformationException;
+    void storeNewMatch(Match match) throws SQLException,
+				    InvalidInformationException;
 
     /**
      * @param userWrapper

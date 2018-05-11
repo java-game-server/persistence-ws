@@ -25,27 +25,28 @@ import com.apporelbotna.gameserver.stubs.Game;
 public class GameController
 {
 
-	@Autowired
-	private PostgreDAO postgreDAO;
+    @Autowired
+    private PostgreDAO postgreDAO;
 
-	@Autowired
-	private GameResourceAssembler assembler;
+    @Autowired
+    private GameResourceAssembler assembler;
 
-	@RequestMapping(value = "/{email}", method = RequestMethod.GET)
-	public ResponseEntity<Collection<GameResource>> findAllGames(@PathVariable String email)
+    @RequestMapping(value = "/{email}", method = RequestMethod.GET)
+    public ResponseEntity< Collection< GameResource > > findAllGames(@PathVariable String email)
+    {
+
+	postgreDAO.connect();
+	List< Game > games = new ArrayList<>();
+	try
 	{
-
-		postgreDAO.connect();
-		List<Game> games = new ArrayList<>();
-		try
-		{
-			games = postgreDAO.getAllGamesByUser(email);
-		} catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-		return new ResponseEntity<>(assembler.toResourceCollection(games), HttpStatus.OK);
-
+	    games = postgreDAO.getAllGamesByUser( email );
+	} catch ( SQLException e )
+	{
+	    e.printStackTrace();
 	}
+	return new ResponseEntity<>( assembler.toResourceCollection( games ),
+				     HttpStatus.OK );
+
+    }
 
 }

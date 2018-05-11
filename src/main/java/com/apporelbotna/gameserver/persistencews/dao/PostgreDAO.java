@@ -270,7 +270,8 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
      * @throws InvalidInformationException
      */
     @Override
-    public void storeNewMatch(Match match) throws InvalidInformationException, SQLException
+    public void storeNewMatch(Match match) throws InvalidInformationException,
+					   SQLException
     {
 	User user = getUserBasicInformation( match.getEmailUser() );
 	if ( user == null )

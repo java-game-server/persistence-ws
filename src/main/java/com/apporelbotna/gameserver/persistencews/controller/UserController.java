@@ -64,7 +64,7 @@ public class UserController
 
 	} catch ( SQLException | InvalidInformationException e )
 	{
-	    e.printStackTrace();
+	    System.out.println( e.getMessage() );
 	    return null;
 	}
     }
@@ -112,7 +112,7 @@ public class UserController
 					 HttpStatus.OK );
 	} catch ( SQLException e )
 	{
-	    e.printStackTrace();
+	    System.out.println( e.getMessage() );
 	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
 	}
     }

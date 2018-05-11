@@ -16,16 +16,12 @@ import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 @RestController
 @ExposesResourceFor(UserWrapper.class)
-@RequestMapping(
-		value = "/auth",
-		produces = "application/json")
-public class Auth
+@RequestMapping(value = "/auth", produces = "application/json")
+public class AuthController
 {
     PostgreDAO postgreDAO = new PostgreDAO();
 
-    @RequestMapping(
-		    method = RequestMethod.POST,
-		    consumes = "application/json")
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public @ResponseBody ResponseEntity< ? > isUserLoggeable(@RequestBody UserWrapper wrapper)
     {
 	postgreDAO.connect();
