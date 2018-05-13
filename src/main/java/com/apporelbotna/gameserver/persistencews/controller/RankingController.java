@@ -28,7 +28,6 @@ public class RankingController
     @RequestMapping(value = "/{game}", method = RequestMethod.GET)
     public ResponseEntity< List< RankingPointsTO > > getRankingPointsByGame(@PathVariable int game)
     {
-
 	postgreDAO.connect();
 	List< RankingPointsTO > ranking = new ArrayList<>();
 

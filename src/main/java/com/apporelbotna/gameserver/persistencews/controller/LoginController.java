@@ -37,7 +37,7 @@ public class LoginController
 
 	} catch ( SQLException | InvalidInformationException e )
 	{
-	    e.printStackTrace();
+	    System.out.println( e.getMessage() );
 	    return null;
 	}
 	return null;

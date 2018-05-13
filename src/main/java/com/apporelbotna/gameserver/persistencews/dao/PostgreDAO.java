@@ -15,10 +15,12 @@ import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.Token;
 import com.apporelbotna.gameserver.stubs.User;
+import com.apporelbotna.gameserver.stubs.UserType;
 import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 /**
- * TODO To be documented
+ * @author albert Spring repository, basic persistence module tho database
+ *
  */
 @Repository
 public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
@@ -27,7 +29,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
     {
 	// empty constructor
     }
-    /*************************** Selects ***********************************/
 
     // TODO check bechavior after refactor
     /**
@@ -39,17 +40,21 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
     @Override
     public User getUserBasicInformation(String email) throws SQLException
     {
-	String select = "SELECT email, name, password FROM public.\"user\" where email = ? ";
+	String select = "SELECT email, name, rol, gold FROM public.\"user\" where email = ? ";
 	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
 	{
 	    prepareStatement.setString( 1, email );
-	    prepareStatement.execute();
-	    try ( ResultSet executeQuery = prepareStatement.executeQuery( select ) )
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
 	    {
 		if ( executeQuery.next() )
 		{
-		    return new User( executeQuery.getString( "email" ),
-				     executeQuery.getString( "name" ) );
+
+		    String sqlEmail = executeQuery.getString( "email" );
+		    String name = executeQuery.getString( "name" );
+		    float gold = executeQuery.getFloat( "gold" );
+		    UserType userType = UserType.convertStringToUserType( executeQuery.getString( "rol" ) );
+
+		    return new User(sqlEmail, name, gold, userType);
 		}
 	    }
 	}
@@ -90,7 +95,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
     }
 
     /**
-     * TODO mirar si se puede combinar con la funcion getUserInformation sin guardar
      * en el stub User la password
      *
      * @param email
@@ -134,7 +138,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	try ( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
 	{
 	    prepareStatement.setString( 1, email );
-	    prepareStatement.setInt( 1, gameId );
+	    prepareStatement.setInt( 2, gameId );
 
 	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
 	    {
@@ -174,7 +178,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
     @Override
     public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
     {
-
 	String select = "SELECT token, user_email FROM public.token where token = ? and user_email = ?";
 
 	boolean existe = false;
@@ -212,7 +215,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	{
 	    prepareStatement.setInt( 1, idGame );
 
-	    try ( ResultSet executeQuery = prepareStatement.executeQuery( select ); )
+	    try ( ResultSet executeQuery = prepareStatement.executeQuery(); )
 	    {
 		while ( executeQuery.next() )
 		{
@@ -225,8 +228,6 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	return ranking;
     }
 
-    /*************************** Insert ********************************/
-
     @Override
     public void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException,
 								SQLException
@@ -237,12 +238,14 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	    throw new InvalidInformationException( Reason.USER_IS_STORED );
 	}
 
-	String query = "INSERT INTO public.\"user\"(email, name, password)	VALUES (?, ?, ?)";
+	String query = "INSERT INTO public.\"user\"(email, name, password, rol, gold) VALUES (?, ?, ?, ?, ?);";
 	try ( PreparedStatement preparedStatement = conn.prepareStatement( query ); )
 	{
-	    preparedStatement.setString( 1, user.getId() );
+	    preparedStatement.setString( 1, user.getEmail() );
 	    preparedStatement.setString( 2, user.getName() );
 	    preparedStatement.setString( 3, userToRegister.getPassword() );
+	    preparedStatement.setString( 4, user.getRol().getType() );
+	    preparedStatement.setFloat( 5, user.getGold() );
 	    preparedStatement.executeUpdate();
 	}
     }
@@ -293,5 +296,40 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 	    preparedStatement.setInt( 4, match.getScore() );
 	    preparedStatement.executeUpdate();
 	}
+    }
+
+    // TODO Store Game
+
+    // TODO Cambiar password user
+
+    // TODO Add game to user
+
+    @Override
+    public void updateUser(UserWrapper userWrapper) throws SQLException,
+						    InvalidInformationException
+    {
+	User userBasicInformation = getUserBasicInformation( userWrapper.getUser().getEmail() );
+	if ( userBasicInformation == null )
+	{
+	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
+	}
+
+	if ( !isTokenValid( userWrapper ) )
+	{
+	    throw new InvalidInformationException( Reason.TOKEN_INVALID );
+	}
+
+	// TODO add update games
+
+	String query = "UPDATE public.\"user\" SET name=?, gold=?, rol=? WHERE email=?";
+
+	try ( PreparedStatement prepareStatement = conn.prepareStatement( query ); )
+	{
+	    prepareStatement.setString( 1, userWrapper.getUser().getName() );
+	    prepareStatement.setFloat( 2, userWrapper.getUser().getGold() );
+	    prepareStatement.setString( 3, userWrapper.getUser().getRol().getType() );
+	    prepareStatement.setString( 4, userWrapper.getUser().getEmail() );
+	}
+
     }
 }

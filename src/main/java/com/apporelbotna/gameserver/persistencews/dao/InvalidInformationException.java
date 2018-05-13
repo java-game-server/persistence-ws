@@ -9,13 +9,13 @@ public class InvalidInformationException extends Exception
     {
 	USER_IS_STORED("El usuario ya ha sido guardado"),
 	USER_IS_NOT_STORED("El usuario no existe"),
+	TOKEN_INVALID("Token Invalido"),
 	GAME_IS_STORED("El juego ya existe"),
 	GAME_IS_NOT_STORED("El juego no existe");
 
 	private String msg;
 
-	private Reason(
-		       String msg)
+	private Reason(String msg)
 	{
 	    this.msg = msg;
 	}
@@ -27,8 +27,7 @@ public class InvalidInformationException extends Exception
 
     }
 
-    public InvalidInformationException(
-				       Reason reason)
+    public InvalidInformationException(Reason reason)
     {
 	super( reason.msg );
     }

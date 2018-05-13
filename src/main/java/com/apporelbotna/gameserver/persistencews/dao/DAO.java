@@ -61,6 +61,14 @@ public interface DAO
 								    InvalidInformationException;
 
     /**
+     * @param user
+     * @throws SQLException
+     * @throws InvalidInformationException
+     */
+    void updateUser(UserWrapper userWrapper) throws SQLException,
+					     InvalidInformationException;
+
+    /**
      * @param userToRegister
      * @throws InvalidInformationException
      * @throws SQLException

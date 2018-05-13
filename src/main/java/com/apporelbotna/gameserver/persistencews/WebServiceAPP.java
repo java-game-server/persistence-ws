@@ -11,11 +11,8 @@ import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType
 @SpringBootApplication
 public class WebServiceAPP
 {
-
     public static void main(String[] args)
     {
 	SpringApplication.run( WebServiceAPP.class, args );
-
     }
-
 }

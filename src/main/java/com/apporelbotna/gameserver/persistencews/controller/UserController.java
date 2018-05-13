@@ -24,6 +24,7 @@ import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.User;
+import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 @RestController
 @ExposesResourceFor(User.class)
@@ -43,8 +44,7 @@ public class UserController
 	try
 	{
 	    user = userService.getAllInformationUser( email );
-	    return new ResponseEntity<>( user,
-					 HttpStatus.OK );
+	    return new ResponseEntity<>( user, HttpStatus.OK );
 	} catch ( SQLException e )
 	{
 	    System.out.println( e.getMessage() );
@@ -59,8 +59,7 @@ public class UserController
 	try
 	{
 	    float time = postgreDAO.getTimePlayedInGame( email, game );
-	    return new ResponseEntity<>( time,
-					 HttpStatus.ACCEPTED );
+	    return new ResponseEntity<>( time, HttpStatus.ACCEPTED );
 
 	} catch ( SQLException | InvalidInformationException e )
 	{
@@ -108,12 +107,36 @@ public class UserController
 	try
 	{
 	    games = postgreDAO.getAllGamesByUser( userEmail );
-	    return new ResponseEntity<>( gameAssembler.toResourceCollection( games ),
-					 HttpStatus.OK );
+	    return new ResponseEntity<>( gameAssembler.toResourceCollection( games ), HttpStatus.OK );
 	} catch ( SQLException e )
 	{
 	    System.out.println( e.getMessage() );
 	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
+	}
+    }
+
+    /**
+     * @param userToUpdate
+     * @return
+     */
+    @RequestMapping(value = "/update", method = RequestMethod.POST, consumes = "application/json")
+    public @ResponseBody ResponseEntity< ? > updateUser(@RequestBody UserWrapper userToUpdate)
+    {
+	try
+	{
+	    postgreDAO.connect();
+	    postgreDAO.updateUser( userToUpdate );
+
+	    return new ResponseEntity<>( HttpStatus.OK );
+
+	} catch ( InvalidInformationException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.CONFLICT );
+	} catch ( SQLException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
 	}
     }
 

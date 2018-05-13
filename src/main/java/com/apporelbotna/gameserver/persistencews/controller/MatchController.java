@@ -28,7 +28,6 @@ public class MatchController
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public @ResponseBody ResponseEntity< ? > storeMatchGame(@RequestBody Match match)
     {
-
 	postgreDAO.connect();
 	try
 	{
