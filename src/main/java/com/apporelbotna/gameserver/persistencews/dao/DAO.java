@@ -65,7 +65,7 @@ public interface DAO
      * @throws SQLException
      * @throws InvalidInformationException
      */
-    void updateUser(UserWrapper userWrapper) throws SQLException,
+    void updateUser(User user) throws SQLException,
 					     InvalidInformationException;
 
     /**
@@ -99,4 +99,11 @@ public interface DAO
      * @throws SQLException
      */
     boolean isTokenValid(UserWrapper userWrapper) throws SQLException;
+
+    /**
+     * @param game
+     * @throws SQLException
+     * @throws InvalidInformationException
+     */
+    public int storeNewGame(Game game) throws SQLException, InvalidInformationException;
 }

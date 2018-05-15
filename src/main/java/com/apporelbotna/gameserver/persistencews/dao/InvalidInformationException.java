@@ -10,6 +10,8 @@ public class InvalidInformationException extends Exception
 	USER_IS_STORED("El usuario ya ha sido guardado"),
 	USER_IS_NOT_STORED("El usuario no existe"),
 	TOKEN_INVALID("Token Invalido"),
+	GENRE_IS_NOT_STORED("El genero no existe"),
+	GENRE_IS_STORED("El genero existe"),
 	GAME_IS_STORED("El juego ya existe"),
 	GAME_IS_NOT_STORED("El juego no existe");
 

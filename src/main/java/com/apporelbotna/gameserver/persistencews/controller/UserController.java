@@ -24,7 +24,6 @@ import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
 import com.apporelbotna.gameserver.stubs.User;
-import com.apporelbotna.gameserver.stubs.UserWrapper;
 
 @RestController
 @ExposesResourceFor(User.class)
@@ -62,6 +61,38 @@ public class UserController
 	    return new ResponseEntity<>( time, HttpStatus.ACCEPTED );
 
 	} catch ( SQLException | InvalidInformationException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return null;
+	}
+    }
+
+    @RequestMapping(value = "{userInput}/name", method = RequestMethod.GET)
+    public ResponseEntity< List< User > > findUsersLikeName(@PathVariable String userInput)
+    {
+	postgreDAO.connect();
+	try
+	{
+	    List< User > users = postgreDAO.findUsersLikeName( userInput );
+	    return new ResponseEntity<>( users, HttpStatus.OK );
+
+	} catch ( SQLException e )
+	{
+	    System.out.println( e.getMessage() );
+	    return null;
+	}
+    }
+
+    @RequestMapping(value = "{userInput}/email", method = RequestMethod.GET)
+    public ResponseEntity< List< User > > findUsersLikeEmail(@PathVariable String userInput)
+    {
+	postgreDAO.connect();
+	try
+	{
+	    List< User > users = postgreDAO.findUsersLikeEmail( userInput );
+	    return new ResponseEntity<>( users, HttpStatus.OK );
+
+	} catch ( SQLException e )
 	{
 	    System.out.println( e.getMessage() );
 	    return null;
@@ -111,32 +142,23 @@ public class UserController
 	} catch ( SQLException e )
 	{
 	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
+	    return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
 	}
     }
 
-    /**
-     * @param userToUpdate
-     * @return
-     */
-    @RequestMapping(value = "/update", method = RequestMethod.POST, consumes = "application/json")
-    public @ResponseBody ResponseEntity< ? > updateUser(@RequestBody UserWrapper userToUpdate)
+    @RequestMapping(method = RequestMethod.PUT)
+    public @ResponseBody ResponseEntity< ? > updateUserBasicInformation(@RequestBody User user)
     {
+	postgreDAO.connect();
 	try
 	{
-	    postgreDAO.connect();
-	    postgreDAO.updateUser( userToUpdate );
-
+	    postgreDAO.updateUser( user );
 	    return new ResponseEntity<>( HttpStatus.OK );
-
-	} catch ( InvalidInformationException e )
+	} catch ( SQLException | InvalidInformationException e )
 	{
 	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.CONFLICT );
-	} catch ( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
+	    e.printStackTrace();
+	    return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
 	}
     }
 
