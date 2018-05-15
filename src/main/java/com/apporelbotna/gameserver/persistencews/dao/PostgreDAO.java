@@ -498,6 +498,17 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 
 	String sql = "INSERT INTO public.user_have_bought_game( email_user, id_game ) VALUES ( ?, ?);";
 
+	// quitar dineros
+	float userMoney = user.getGold();
+	Game game = getGameById( idGame );
+	float gameCost = game.getPrice();
+
+	if ( userMoney < gameCost )
+	{
+	    user.setGold( userMoney - gameCost);
+	    updateUser( user );
+	}
+
 	try ( PreparedStatement preparedStatement = conn.prepareStatement( sql ) )
 	{
 	    preparedStatement.setString( 1, user.getEmail() );
@@ -541,6 +552,7 @@ public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 		if ( executeQuery.next() )
 		{
 		    existe = true;
+
 		}
 	    }
 	}

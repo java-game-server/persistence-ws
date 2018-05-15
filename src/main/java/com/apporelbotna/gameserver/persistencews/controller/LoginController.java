@@ -28,6 +28,9 @@ public class LoginController
 	try
 	{
 	    String passwordUserDB = postgreDAO.getUserPassword( email );
+	    if(passwordUserDB == null) {
+		return null;
+	    }
 	    if ( passwordUserDB.equals( password ) )
 	    {
 		Token token = generateToken();

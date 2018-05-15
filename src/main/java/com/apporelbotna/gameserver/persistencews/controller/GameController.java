@@ -35,22 +35,6 @@ public class GameController
     @Autowired
     private GameResourceAssembler assembler;
 
-    @RequestMapping(value = "/{email}", method = RequestMethod.GET)
-    public ResponseEntity< Collection< GameResource > > findAllGamesBy(@PathVariable String email)
-    {
-	postgreDAO.connect();
-	List< Game > games = new ArrayList<>();
-	try
-	{
-	    games = postgreDAO.getAllGamesByUser( email );
-	} catch ( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    e.printStackTrace();
-	}
-	return new ResponseEntity<>( assembler.toResourceCollection( games ), HttpStatus.OK );
-    }
-
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity< Collection< GameResource > > findAllGames()
     {

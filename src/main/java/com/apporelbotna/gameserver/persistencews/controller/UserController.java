@@ -2,7 +2,6 @@ package com.apporelbotna.gameserver.persistencews.controller;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apporelbotna.gameserver.persistencews.dao.InvalidInformationException;
 import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
-import com.apporelbotna.gameserver.persistencews.resource.GameResource;
-import com.apporelbotna.gameserver.persistencews.resource.GameResourceAssembler;
 import com.apporelbotna.gameserver.persistencews.service.UserService;
 import com.apporelbotna.gameserver.stubs.Game;
 import com.apporelbotna.gameserver.stubs.RegisterUser;
@@ -127,18 +124,16 @@ public class UserController
 	}
     }
 
-    @Autowired
-    private GameResourceAssembler gameAssembler;
-
     @RequestMapping(value = "/game/{userEmail}", method = RequestMethod.GET)
-    public ResponseEntity< Collection< GameResource > > findAllGamesByUser(@PathVariable String userEmail)
+    public ResponseEntity< List <Game> > findAllGamesByUser(@PathVariable String userEmail)
     {
 	postgreDAO.connect();
 	List< Game > games = new ArrayList<>();
 	try
 	{
 	    games = postgreDAO.getAllGamesByUser( userEmail );
-	    return new ResponseEntity<>( gameAssembler.toResourceCollection( games ), HttpStatus.OK );
+
+	    return new ResponseEntity<>( games , HttpStatus.OK );
 	} catch ( SQLException e )
 	{
 	    System.out.println( e.getMessage() );
