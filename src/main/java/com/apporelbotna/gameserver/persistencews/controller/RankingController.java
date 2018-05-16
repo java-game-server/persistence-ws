@@ -22,25 +22,24 @@ import com.apporelbotna.gameserver.stubs.RankingPointsTO;
 @RequestMapping(value = "/ranking", produces = "application/json")
 public class RankingController
 {
-    @Autowired
-    private PostgreDAO postgreDAO;
+	@Autowired
+	private PostgreDAO postgreDAO;
 
-    @RequestMapping(value = "/{game}", method = RequestMethod.GET)
-    public ResponseEntity< List< RankingPointsTO > > getRankingPointsByGame(@PathVariable int game)
-    {
-	postgreDAO.connect();
-	List< RankingPointsTO > ranking = new ArrayList<>();
+	@RequestMapping(value = "/{game}", method = RequestMethod.GET)
+	public ResponseEntity<List<RankingPointsTO>> getRankingPointsByGame(@PathVariable int game)
+	{
+		postgreDAO.connect();
+		List<RankingPointsTO> ranking = new ArrayList<>();
 
-	try
-	{
-	    ranking = postgreDAO.getRankingUsersGameByPoints( game );
-	} catch ( InvalidInformationException | SQLException e )
-	{
-	    e.printStackTrace();
+		try
+		{
+			ranking = postgreDAO.getRankingUsersGameByPoints(game);
+		} catch (InvalidInformationException | SQLException e)
+		{
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(ranking, HttpStatus.OK);
+
 	}
-	return new ResponseEntity<>( ranking,
-				     HttpStatus.OK );
-
-    }
 
 }

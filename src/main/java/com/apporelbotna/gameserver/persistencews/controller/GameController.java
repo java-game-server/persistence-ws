@@ -101,17 +101,23 @@ public class GameController
 		}
 	}
 
-	@RequestMapping(value = "/{idGame}", method = RequestMethod.PUT)
-	public void addGameToUser(@PathVariable("idGame") String idGame, @RequestBody User user)
+	@RequestMapping(value = "/{idGame}", method = RequestMethod.POST)
+	public ResponseEntity<?> addGameToUser(@PathVariable("idGame") String idGame, @RequestBody User user)
 	{
 		postgreDAO.connect();
 		try
 		{
-			postgreDAO.storeGameToUser(user, Integer.parseInt(idGame));
-		} catch (SQLException | InvalidInformationException e)
+			if (postgreDAO.storeGameToUser(user, Integer.parseInt(idGame)))
+			{
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+			return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
+
+		} catch (InvalidInformationException | SQLException e)
 		{
 			System.out.println(e.getMessage());
 			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

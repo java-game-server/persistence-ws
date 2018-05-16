@@ -25,531 +25,528 @@ import com.apporelbotna.gameserver.stubs.UserWrapper;
 @Repository
 public class PostgreDAO extends ConnectivityPostgreDAO implements DAO
 {
-    public enum UserFilter
-    {
-	NAME( "name" ),
-	EMAIL( "email" );
-	private String columnName;
-
-	private UserFilter(
-			   String columnName)
+	public enum UserFilter
 	{
-	    this.columnName = columnName;
-	}
+		NAME("name"), EMAIL("email");
+		private String columnName;
 
-	public String getColumnName()
-	{
-	    return columnName;
-	}
-
-	public static UserFilter fromString( String userFilter )
-	{
-	    for ( UserFilter actualUserFilter : UserFilter.values() )
-	    {
-		if ( actualUserFilter.getColumnName().equals( userFilter ) )
+		private UserFilter(String columnName)
 		{
-		    return actualUserFilter;
+			this.columnName = columnName;
 		}
-	    }
-	    return null;
-	}
-    }
 
-    public PostgreDAO()
-    {
-	// empty constructor
-    }
-
-    // TODO check bechavior after refactor
-    /**
-     * @param email
-     *            the primaryKey of the user.
-     * @return user if exist or null.
-     * @throws SQLException
-     */
-    @Override
-    public User getUserBasicInformation( String email ) throws SQLException
-    {
-	String select = "SELECT email, name, rol, gold FROM public.\"user\" where email = ? ";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
-	{
-	    prepareStatement.setString( 1 , email );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		if ( executeQuery.next() )
+		public String getColumnName()
 		{
-		    String sqlEmail = executeQuery.getString( "email" );
-		    String name = executeQuery.getString( "name" );
-		    float gold = executeQuery.getFloat( "gold" );
-		    UserType userType = UserType.fromString( executeQuery.getString( "rol" ) );
-		    return new User( sqlEmail,
-				     name,
-				     gold,
-				     userType );
+			return columnName;
 		}
-	    }
-	}
-	return null;
-    }
 
-    public List<User> findUsersLikeName( String userInput ) throws SQLException
-    {
-	String select = "select * from public.user where name like ?";
-	List<User> users = new ArrayList<>();
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
-	{
-	    prepareStatement.setString( 1 , "%" + userInput + "%" );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		public static UserFilter fromString(String userFilter)
 		{
-		    String sqlEmail = executeQuery.getString( "email" );
-		    String name = executeQuery.getString( "name" );
-		    float gold = executeQuery.getFloat( "gold" );
-		    UserType userType = UserType.fromString( executeQuery.getString( "rol" ) );
-		    List<Game> games = getAllGamesByUser( sqlEmail );
-		    users.add( new User( sqlEmail,
-					 name,
-					 games,
-					 gold,
-					 userType ) );
+			for (UserFilter actualUserFilter : UserFilter.values())
+			{
+				if (actualUserFilter.getColumnName().equals(userFilter))
+				{
+					return actualUserFilter;
+				}
+			}
+			return null;
 		}
-	    }
 	}
-	return users;
-    }
 
-    public List<User> findUsersLikeEmail( String userInput ) throws SQLException
-    {
-	String select = "select * from public.user where email like ?";
-	List<User> users = new ArrayList<>();
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	public PostgreDAO()
 	{
-	    prepareStatement.setString( 1 , "%" + userInput + "%" );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		// empty constructor
+	}
+
+	// TODO check behavior after refactor
+	/**
+	 * @param email
+	 *            the primaryKey of the user.
+	 * @return user if exist or null.
+	 * @throws SQLException
+	 */
+	@Override
+	public User getUserBasicInformation(String email) throws SQLException
+	{
+		String select = "SELECT email, name, rol, gold FROM public.\"user\" where email = ? ";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    String sqlEmail = executeQuery.getString( "email" );
-		    String name = executeQuery.getString( "name" );
-		    float gold = executeQuery.getFloat( "gold" );
-		    UserType userType = UserType.fromString( executeQuery.getString( "rol" ) );
-		    List<Game> games = getAllGamesByUser( sqlEmail );
-		    users.add( new User( sqlEmail,
-					 name,
-					 games,
-					 gold,
-					 userType ) );
+			prepareStatement.setString(1, email);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				if (executeQuery.next())
+				{
+					String sqlEmail = executeQuery.getString("email");
+					String name = executeQuery.getString("name");
+					float gold = executeQuery.getFloat("gold");
+					UserType userType = UserType.fromString(executeQuery.getString("rol"));
+					return new User(sqlEmail, name, gold, userType);
+				}
+			}
 		}
-	    }
+		return null;
 	}
-	return users;
-    }
 
-    /**
-     * metodo que te saca todos los juegos de un usuario.
-     *
-     * @param email
-     *            the primary key of the User
-     * @return
-     * @throws SQLException
-     */
-    @Override
-    public List<Game> getAllGamesByUser( String email ) throws SQLException
-    {
-	String select =
-		      "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description, g.executable_name, g.img_uri, g.price"
-			+ " FROM public.user_have_bought_game uhbg INNER Join game g on g.id = uhbg.id_game"
-			+ " where email_user = ?";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	public List<User> findUsersLikeName(String userInput) throws SQLException
 	{
-	    prepareStatement.setString( 1 , email );
-	    List<Game> userGames = new ArrayList<>();
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		String select = "select * from public.user where name like ?";
+		List<User> users = new ArrayList<>();
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    userGames.add( new Game( executeQuery.getInt( "id_game" ),
-					     executeQuery.getString( "name" ),
-					     executeQuery.getString( "description" ),
-					     executeQuery.getString( "executable_name" ),
-					     executeQuery.getString( "img_uri" ),
-					     executeQuery.getFloat( "price" ) ) );
+			prepareStatement.setString(1, "%" + userInput + "%");
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					String sqlEmail = executeQuery.getString("email");
+					String name = executeQuery.getString("name");
+					float gold = executeQuery.getFloat("gold");
+					UserType userType = UserType.fromString(executeQuery.getString("rol"));
+					List<Game> games = getAllGamesByUser(sqlEmail);
+					users.add(new User(sqlEmail, name, games, gold, userType));
+				}
+			}
 		}
-	    }
-	    return userGames;
+		return users;
 	}
-    }
 
-    public List<Game> getAllGames() throws SQLException
-    {
-	String select = "SELECT id, name, description, executable_name, img_uri, price FROM public.game;";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	public List<User> findUsersLikeEmail(String userInput) throws SQLException
 	{
-	    List<Game> userGames = new ArrayList<>();
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		String select = "select * from public.user where email like ?";
+		List<User> users = new ArrayList<>();
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    userGames.add( new Game( executeQuery.getInt( "id" ),
-					     executeQuery.getString( "name" ),
-					     executeQuery.getString( "description" ),
-					     executeQuery.getString( "executable_name" ),
-					     executeQuery.getString( "img_uri" ),
-					     executeQuery.getFloat( "price" ) ) );
+			prepareStatement.setString(1, "%" + userInput + "%");
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					String sqlEmail = executeQuery.getString("email");
+					String name = executeQuery.getString("name");
+					float gold = executeQuery.getFloat("gold");
+					UserType userType = UserType.fromString(executeQuery.getString("rol"));
+					List<Game> games = getAllGamesByUser(sqlEmail);
+					users.add(new User(sqlEmail, name, games, gold, userType));
+				}
+			}
 		}
-	    }
-	    return userGames;
+		return users;
 	}
-    }
 
-    public List<Game> findGamesLikeName( String userInput ) throws SQLException
-    {
-	String select = "select * from public.game where name like ?";
-	List<Game> games = new ArrayList<>();
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	/**
+	 * metodo que te saca todos los juegos de un usuario.
+	 *
+	 * @param email
+	 *            the primary key of the User
+	 * @return
+	 * @throws SQLException
+	 */
+	@Override
+	public List<Game> getAllGamesByUser(String email) throws SQLException
 	{
-	    prepareStatement.setString( 1 , "%" + userInput + "%" );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		String select = "SELECT uhbg.email_user, uhbg.id_game, g.name, g.description, g.executable_name, g.img_uri, g.price"
+				+ " FROM public.user_have_bought_game uhbg INNER Join game g on g.id = uhbg.id_game"
+				+ " where email_user = ?";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    Integer id = executeQuery.getInt( "id" );
-		    String name = executeQuery.getString( "name" );
-		    String descripcion = executeQuery.getString( "description" );
-		    String executable = executeQuery.getString( "executable_name" );
-		    String image = executeQuery.getString( "img_uri" );
-		    float price = executeQuery.getFloat( "price" );
-		    games.add( new Game( id,
-					 name,
-					 descripcion,
-					 executable,
-					 image,
-					 price ) );
+			prepareStatement.setString(1, email);
+			List<Game> userGames = new ArrayList<>();
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					userGames.add(new Game(executeQuery.getInt("id_game"), executeQuery.getString("name"),
+							executeQuery.getString("description"), executeQuery.getString("executable_name"),
+							executeQuery.getString("img_uri"), executeQuery.getFloat("price")));
+				}
+			}
+			return userGames;
 		}
-	    }
 	}
-	return games;
-    }
 
-    public List<String> getAllGenre() throws SQLException
-    {
-	String select = "SELECT name FROM public.genre;";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	public List<Game> getAllGames() throws SQLException
 	{
-	    List<String> genres = new ArrayList<>();
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		String select = "SELECT id, name, description, executable_name, img_uri, price FROM public.game;";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    genres.add( executeQuery.getString( "name" ) );
+			List<Game> userGames = new ArrayList<>();
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					userGames.add(new Game(executeQuery.getInt("id"), executeQuery.getString("name"),
+							executeQuery.getString("description"), executeQuery.getString("executable_name"),
+							executeQuery.getString("img_uri"), executeQuery.getFloat("price")));
+				}
+			}
+			return userGames;
 		}
-	    }
-	    return genres;
 	}
-    }
 
-    /**
-     *
-     * @param email
-     * @return the password of the user if exists or null
-     * @throws SQLException
-     */
-    @Override
-    public String getUserPassword( String email ) throws SQLException
-    {
-	String select = "SELECT password FROM public.user where email = ?";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	public List<Game> findGamesLikeName(String userInput) throws SQLException
 	{
-	    prepareStatement.setString( 1 , email );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		if ( executeQuery.next() )
+		String select = "select * from public.game where name like ?";
+		List<Game> games = new ArrayList<>();
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    return executeQuery.getString( "password" );
+			prepareStatement.setString(1, "%" + userInput + "%");
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					Integer id = executeQuery.getInt("id");
+					String name = executeQuery.getString("name");
+					String descripcion = executeQuery.getString("description");
+					String executable = executeQuery.getString("executable_name");
+					String image = executeQuery.getString("img_uri");
+					float price = executeQuery.getFloat("price");
+					games.add(new Game(id, name, descripcion, executable, image, price));
+				}
+			}
 		}
-	    }
+		return games;
 	}
-	return null;
-    }
 
-    @Override
-    public float getTimePlayedInGame( String email, int gameId ) throws SQLException, InvalidInformationException
-    {
-	if ( getUserBasicInformation( email ) == null )
+	public List<String> getAllGenre() throws SQLException
 	{
-	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
-	}
-	if ( getGameById( gameId ) == null )
-	{
-	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
-	}
-	String select = "select email_user, id_game, game_lenght from public.user_historical_game "
-			+ "where email_user = ? and id_game = ?";
-	float totalTime = 0.0f;
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
-	{
-	    prepareStatement.setString( 1 , email );
-	    prepareStatement.setInt( 2 , gameId );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		String select = "SELECT name FROM public.genre;";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    totalTime += executeQuery.getFloat( "game_lenght" );
+			List<String> genres = new ArrayList<>();
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					genres.add(executeQuery.getString("name"));
+				}
+			}
+			return genres;
 		}
-	    }
 	}
-	return totalTime;
-    }
 
-    @Override
-    public Game getGameById( int idGame ) throws SQLException
-    {
-	String select = "select * from public.game where id = ?";
-	Game game = null;
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	/**
+	 *
+	 * @param email
+	 * @return the password of the user if exists or null
+	 * @throws SQLException
+	 */
+	@Override
+	public String getUserPassword(String email) throws SQLException
 	{
-	    prepareStatement.setInt( 1 , idGame );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		if ( executeQuery.next() )
+		String select = "SELECT password FROM public.user where email = ?";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    game = new Game( executeQuery.getInt( "id" ),
-				     executeQuery.getString( "name" ),
-				     executeQuery.getString( "description" ),
-				     executeQuery.getString( "executable_name" ),
-				     executeQuery.getString( "img_uri" ),
-				     executeQuery.getFloat( "price" ) );
+			prepareStatement.setString(1, email);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				if (executeQuery.next())
+				{
+					return executeQuery.getString("password");
+				}
+			}
 		}
-	    }
+		return null;
 	}
-	return game;
-    }
 
-    @Override
-    public boolean isTokenValid( UserWrapper userWrapper ) throws SQLException
-    {
-	String select = "SELECT token, user_email FROM public.token where token = ? and user_email = ?";
-	boolean existe = false;
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
+	@Override
+	public float getTimePlayedInGame(String email, int gameId) throws SQLException, InvalidInformationException
 	{
-	    prepareStatement.setString( 1 , userWrapper.getToken().getTokenName() );
-	    prepareStatement.setString( 2 , userWrapper.getUser().getEmail() );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		if ( executeQuery.next() )
+		if (getUserBasicInformation(email) == null)
 		{
-		    existe = true;
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
 		}
-	    }
-	}
-	return existe;
-    }
-
-    @Override
-    public List<RankingPointsTO> getRankingUsersGameByPoints( int idGame ) throws SQLException,
-									   InvalidInformationException
-    {
-	Game game = getGameById( idGame );
-	if ( game == null )
-	{
-	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
-	}
-	String select = "select email_user, sum(puntuation) as puntuation" + " from public.user_historical_game"
-			+ " where id_game = ? group by email_user";
-	List<RankingPointsTO> ranking = new ArrayList<>();
-	try( PreparedStatement prepareStatement = conn.prepareStatement( select ); )
-	{
-	    prepareStatement.setInt( 1 , idGame );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		while( executeQuery.next() )
+		if (getGameById(gameId) == null)
 		{
-		    ranking.add( new RankingPointsTO( executeQuery.getString( "email_user" ),
-						      executeQuery.getRow(),
-						      executeQuery.getInt( "puntuation" ) ) );
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
 		}
-	    }
-	}
-	return ranking;
-    }
-
-    @Override
-    public void storeNewUserInBBDD( RegisterUser userToRegister ) throws InvalidInformationException, SQLException
-    {
-	User user = userToRegister.getUser();
-	if ( getUserBasicInformation( user.getId() ) != null )
-	{
-	    throw new InvalidInformationException( Reason.USER_IS_STORED );
-	}
-	String query = "INSERT INTO public.\"user\"(email, name, password, rol, gold) VALUES (?, ?, ?, ?, ?);";
-	try( PreparedStatement preparedStatement = conn.prepareStatement( query ); )
-	{
-	    preparedStatement.setString( 1 , user.getEmail() );
-	    preparedStatement.setString( 2 , user.getName() );
-	    preparedStatement.setString( 3 , userToRegister.getPassword() );
-	    preparedStatement.setString( 4 , user.getRol().getType() );
-	    preparedStatement.setFloat( 5 , user.getGold() );
-	    preparedStatement.executeUpdate();
-	}
-    }
-
-    @Override
-    public void storeTokenToUser( User user, Token token ) throws InvalidInformationException, SQLException
-    {
-	if ( getUserBasicInformation( user.getId() ) == null )
-	{
-	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
-	}
-	String query = "INSERT INTO public.token (token, user_email) VALUES (?, ?);";
-	try( PreparedStatement preparedStatement = conn.prepareStatement( query ); )
-	{
-	    preparedStatement.setString( 1 , token.getTokenName() );
-	    preparedStatement.setString( 2 , user.getId() );
-	    preparedStatement.executeUpdate();
-	}
-    }
-
-    /**
-     * @param match
-     * @throws SQLException
-     * @throws InvalidInformationException
-     */
-    @Override
-    public void storeNewMatch( Match match ) throws InvalidInformationException, SQLException
-    {
-	User user = getUserBasicInformation( match.getEmailUser() );
-	if ( user == null )
-	{
-	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
-	}
-	Game game = getGameById( match.getIdGame() );
-	if ( game == null )
-	{
-	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
-	}
-	String query = "INSERT INTO public.user_historical_game" + " (email_user, id_game, game_lenght, puntuation)"
-		       + " VALUES (?, ?, ?, ?);";
-	try( PreparedStatement preparedStatement = conn.prepareStatement( query ) )
-	{
-	    preparedStatement.setString( 1 , match.getEmailUser() );
-	    preparedStatement.setInt( 2 , match.getIdGame() );
-	    preparedStatement.setLong( 3 , ( long ) match.getGameTimeInSeconds() );
-	    preparedStatement.setInt( 4 , match.getScore() );
-	    preparedStatement.executeUpdate();
-	}
-    }
-
-    @Override
-    public int storeNewGame( Game game ) throws SQLException, InvalidInformationException
-    {
-	String sql = "INSERT INTO public.game ( name, description, executable_name, img_uri, price ) VALUES"
-		     + " ( ?, ?, ?, ?, ? )";
-	try( PreparedStatement preparedStatement = conn.prepareStatement( sql ) )
-	{
-	    preparedStatement.setString( 1 , game.getName() );
-	    preparedStatement.setString( 2 , game.getDescription() );
-	    preparedStatement.setString( 3 , game.getExecutableName() );
-	    preparedStatement.setString( 4 , game.getImgUri() );
-	    preparedStatement.setFloat( 5 , game.getPrice() );
-	    preparedStatement.executeUpdate();
-	    try( ResultSet rs = preparedStatement.getGeneratedKeys() )
-	    {
-		if ( rs.next() )
+		String select = "select email_user, id_game, game_lenght from public.user_historical_game "
+				+ "where email_user = ? and id_game = ?";
+		float totalTime = 0.0f;
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    return rs.getInt( 1 );
+			prepareStatement.setString(1, email);
+			prepareStatement.setInt(2, gameId);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					totalTime += executeQuery.getFloat("game_lenght");
+				}
+			}
 		}
-	    }
-	    return 0;
+		return totalTime;
 	}
-    }
 
-    public void storeGameToUser( User user, int idGame ) throws SQLException, InvalidInformationException
-    {
-	// Check if user exist
-	if ( getUserBasicInformation( user.getEmail() ) == null )
+	@Override
+	public Game getGameById(int idGame) throws SQLException
 	{
-	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
-	}
-	// Check if game exist
-	if ( getGameById( idGame ) == null )
-	{
-	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
-	}
-	String sql = "INSERT INTO public.user_have_bought_game( email_user, id_game ) VALUES ( ?, ?);";
-	// quitar dineros
-	float userMoney = user.getGold();
-	Game game = getGameById( idGame );
-	float gameCost = game.getPrice();
-	if ( userMoney < gameCost )
-	{
-	    user.setGold( userMoney - gameCost );
-	    updateUser( user );
-	}
-	try( PreparedStatement preparedStatement = conn.prepareStatement( sql ) )
-	{
-	    preparedStatement.setString( 1 , user.getEmail() );
-	    preparedStatement.setInt( 2 , idGame );
-	    preparedStatement.executeUpdate();
-	}
-    }
-
-    @Override
-    public void updateUser( User user ) throws SQLException, InvalidInformationException
-    {
-	User userBasicInformation = getUserBasicInformation( user.getEmail() );
-	if ( userBasicInformation == null )
-	{
-	    throw new InvalidInformationException( Reason.USER_IS_NOT_STORED );
-	}
-	// update user
-	String query = "UPDATE public.\"user\" SET name=?, gold=?, rol=? WHERE email=?";
-	try( PreparedStatement prepareStatement = conn.prepareStatement( query ); )
-	{
-	    prepareStatement.setString( 1 , user.getName() );
-	    prepareStatement.setFloat( 2 , user.getGold() );
-	    prepareStatement.setString( 3 , user.getRol().getType() );
-	    prepareStatement.setString( 4 , user.getEmail() );
-	    prepareStatement.executeUpdate();
-	}
-    }
-
-    public boolean isStoredGenre( String genre ) throws SQLException
-    {
-	String sql = "SELECT name FROM public.genre where name=?";
-	boolean existe = false;
-	try( PreparedStatement prepareStatement = conn.prepareStatement( sql ); )
-	{
-	    prepareStatement.setString( 1 , genre );
-	    try( ResultSet executeQuery = prepareStatement.executeQuery(); )
-	    {
-		if ( executeQuery.next() )
+		String select = "select * from public.game where id = ?";
+		Game game = null;
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
 		{
-		    existe = true;
+			prepareStatement.setInt(1, idGame);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				if (executeQuery.next())
+				{
+					game = new Game(executeQuery.getInt("id"), executeQuery.getString("name"),
+							executeQuery.getString("description"), executeQuery.getString("executable_name"),
+							executeQuery.getString("img_uri"), executeQuery.getFloat("price"));
+				}
+			}
 		}
-	    }
+		return game;
 	}
-	return existe;
-    }
 
-    public void storeGenreToGame( Game game, String genre ) throws SQLException, InvalidInformationException
-    {
-	// Check if genre exist
-	if ( !isStoredGenre( genre ) )
+	@Override
+	public boolean isTokenValid(UserWrapper userWrapper) throws SQLException
 	{
-	    throw new InvalidInformationException( Reason.GENRE_IS_NOT_STORED );
+		String select = "SELECT token, user_email FROM public.token where token = ? and user_email = ?";
+		boolean existe = false;
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
+		{
+			prepareStatement.setString(1, userWrapper.getToken().getTokenName());
+			prepareStatement.setString(2, userWrapper.getUser().getEmail());
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				if (executeQuery.next())
+				{
+					existe = true;
+				}
+			}
+		}
+		return existe;
 	}
-	// Check if game exist
-	if ( getGameById( game.getId() ) == null )
+
+	@Override
+	public List<RankingPointsTO> getRankingUsersGameByPoints(int idGame)
+			throws SQLException, InvalidInformationException
 	{
-	    throw new InvalidInformationException( Reason.GAME_IS_NOT_STORED );
+		Game game = getGameById(idGame);
+		if (game == null)
+		{
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+		String select = "select email_user, sum(puntuation) as puntuation" + " from public.user_historical_game"
+				+ " where id_game = ? group by email_user";
+		List<RankingPointsTO> ranking = new ArrayList<>();
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
+		{
+			prepareStatement.setInt(1, idGame);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					ranking.add(new RankingPointsTO(executeQuery.getString("email_user"), executeQuery.getRow(),
+							executeQuery.getInt("puntuation")));
+				}
+			}
+		}
+		return ranking;
 	}
-	String sql = "INSERT INTO public.game_belong_genre(id_game, genre_name) VALUES ( ?, ?);";
-	try( PreparedStatement preparedStatement = conn.prepareStatement( sql ) )
+
+	@Override
+	public void storeNewUserInBBDD(RegisterUser userToRegister) throws InvalidInformationException, SQLException
 	{
-	    preparedStatement.setInt( 1 , game.getId() );
-	    preparedStatement.setString( 2 , genre );
-	    preparedStatement.executeUpdate();
+		User user = userToRegister.getUser();
+		if (getUserBasicInformation(user.getId()) != null)
+		{
+			throw new InvalidInformationException(Reason.USER_IS_STORED);
+		}
+		String query = "INSERT INTO public.\"user\"(email, name, password, rol, gold) VALUES (?, ?, ?, ?, ?);";
+		try (PreparedStatement preparedStatement = conn.prepareStatement(query);)
+		{
+			preparedStatement.setString(1, user.getEmail());
+			preparedStatement.setString(2, user.getName());
+			preparedStatement.setString(3, userToRegister.getPassword());
+			preparedStatement.setString(4, user.getRol().getType());
+			preparedStatement.setFloat(5, user.getGold());
+			preparedStatement.executeUpdate();
+		}
 	}
-    }
+
+	@Override
+	public void storeTokenToUser(User user, Token token) throws InvalidInformationException, SQLException
+	{
+		if (getUserBasicInformation(user.getId()) == null)
+		{
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+		String query = "INSERT INTO public.token (token, user_email) VALUES (?, ?);";
+		try (PreparedStatement preparedStatement = conn.prepareStatement(query);)
+		{
+			preparedStatement.setString(1, token.getTokenName());
+			preparedStatement.setString(2, user.getId());
+			preparedStatement.executeUpdate();
+		}
+	}
+
+	/**
+	 * @param match
+	 * @throws SQLException
+	 * @throws InvalidInformationException
+	 */
+	@Override
+	public void storeNewMatch(Match match) throws InvalidInformationException, SQLException
+	{
+		User user = getUserBasicInformation(match.getEmailUser());
+		if (user == null)
+		{
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+		Game game = getGameById(match.getIdGame());
+		if (game == null)
+		{
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+		String query = "INSERT INTO public.user_historical_game" + " (email_user, id_game, game_lenght, puntuation)"
+				+ " VALUES (?, ?, ?, ?);";
+		try (PreparedStatement preparedStatement = conn.prepareStatement(query))
+		{
+			preparedStatement.setString(1, match.getEmailUser());
+			preparedStatement.setInt(2, match.getIdGame());
+			preparedStatement.setLong(3, (long) match.getGameTimeInSeconds());
+			preparedStatement.setInt(4, match.getScore());
+			preparedStatement.executeUpdate();
+		}
+	}
+
+	@Override
+	public int storeNewGame(Game game) throws SQLException, InvalidInformationException
+	{
+		String sql = "INSERT INTO public.game ( name, description, executable_name, img_uri, price ) VALUES"
+				+ " ( ?, ?, ?, ?, ? )";
+		try (PreparedStatement preparedStatement = conn.prepareStatement(sql))
+		{
+			preparedStatement.setString(1, game.getName());
+			preparedStatement.setString(2, game.getDescription());
+			preparedStatement.setString(3, game.getExecutableName());
+			preparedStatement.setString(4, game.getImgUri());
+			preparedStatement.setFloat(5, game.getPrice());
+			preparedStatement.executeUpdate();
+			try (ResultSet rs = preparedStatement.getGeneratedKeys())
+			{
+				if (rs.next())
+				{
+					return rs.getInt(1);
+				}
+			}
+			return 0;
+		}
+	}
+
+	public boolean storeGameToUser(User user, int idGame) throws SQLException, InvalidInformationException
+	{
+		// Check if user exist
+		user = getUserBasicInformation(user.getEmail());
+		if (user == null)
+		{
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+		// Check if game exist
+		if (getGameById(idGame) == null)
+		{
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+		String sql = "INSERT INTO public.user_have_bought_game( email_user, id_game ) VALUES ( ?, ?);";
+		// quitar dineros
+		float userMoney = user.getGold();
+		Game game = getGameById(idGame);
+		float gameCost = game.getPrice();
+		if (userMoney > gameCost)
+		{
+			user.setGold(userMoney - gameCost);
+			updateUser(user);
+
+			try (PreparedStatement preparedStatement = conn.prepareStatement(sql))
+			{
+				preparedStatement.setString(1, user.getEmail());
+				preparedStatement.setInt(2, idGame);
+				preparedStatement.executeUpdate();
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void updateUser(User user) throws SQLException, InvalidInformationException
+	{
+		User userBasicInformation = getUserBasicInformation(user.getEmail());
+		if (userBasicInformation == null)
+		{
+			throw new InvalidInformationException(Reason.USER_IS_NOT_STORED);
+		}
+		// update user
+		String query = "UPDATE public.\"user\" SET name=?, gold=?, rol=? WHERE email=?";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(query);)
+		{
+			prepareStatement.setString(1, user.getName());
+			prepareStatement.setFloat(2, user.getGold());
+			prepareStatement.setString(3, user.getRol().getType());
+			prepareStatement.setString(4, user.getEmail());
+			prepareStatement.executeUpdate();
+		}
+	}
+
+	public boolean isStoredGenre(String genre) throws SQLException
+	{
+		String sql = "SELECT name FROM public.genre where name=?";
+		boolean existe = false;
+		try (PreparedStatement prepareStatement = conn.prepareStatement(sql);)
+		{
+			prepareStatement.setString(1, genre);
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				if (executeQuery.next())
+				{
+					existe = true;
+				}
+			}
+		}
+		return existe;
+	}
+
+	public void storeGenreToGame(Game game, String genre) throws SQLException, InvalidInformationException
+	{
+		// Check if genre exist
+		if (!isStoredGenre(genre))
+		{
+			throw new InvalidInformationException(Reason.GENRE_IS_NOT_STORED);
+		}
+		// Check if game exist
+		if (getGameById(game.getId()) == null)
+		{
+			throw new InvalidInformationException(Reason.GAME_IS_NOT_STORED);
+		}
+		String sql = "INSERT INTO public.game_belong_genre(id_game, genre_name) VALUES ( ?, ?);";
+		try (PreparedStatement preparedStatement = conn.prepareStatement(sql))
+		{
+			preparedStatement.setInt(1, game.getId());
+			preparedStatement.setString(2, genre);
+			preparedStatement.executeUpdate();
+		}
+	}
+
+	public List<User> getAllUser() throws SQLException
+	{
+		String select = "SELECT email, name, rol, gold FROM public.\"user\";";
+		try (PreparedStatement prepareStatement = conn.prepareStatement(select);)
+		{
+			List<User> users = new ArrayList<>();
+			try (ResultSet executeQuery = prepareStatement.executeQuery();)
+			{
+				while (executeQuery.next())
+				{
+					String sqlEmail = executeQuery.getString("email");
+					String name = executeQuery.getString("name");
+					float gold = executeQuery.getFloat("gold");
+					UserType userType = UserType.fromString(executeQuery.getString("rol"));
+					users.add(new User(sqlEmail, name, gold, userType));
+				}
+			}
+			return users;
+		}
+	}
 }

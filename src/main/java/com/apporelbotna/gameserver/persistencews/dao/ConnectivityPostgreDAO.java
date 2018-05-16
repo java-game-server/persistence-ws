@@ -13,7 +13,9 @@ public class ConnectivityPostgreDAO implements Connectivity
 {
     private static final Logger logger = LoggerFactory.getLogger( ConnectivityPostgreDAO.class );
 
+    //stucky
     private static final String URL = "jdbc:postgresql://localhost/apporelbotnagameclient";
+    //private static final String URL = "jdbc:postgresql://localhost/AppOrElBotnaGameClient";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "root";
     protected Connection conn;

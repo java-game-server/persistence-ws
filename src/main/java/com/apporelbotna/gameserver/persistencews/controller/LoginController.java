@@ -19,42 +19,43 @@ import com.apporelbotna.gameserver.stubs.User;
 @RequestMapping(value = "/login", produces = "application/json")
 public class LoginController
 {
-    PostgreDAO postgreDAO = new PostgreDAO();
+	PostgreDAO postgreDAO = new PostgreDAO();
 
-    @RequestMapping(value = "/{email}/{password}", method = RequestMethod.GET)
-    public Token login(@PathVariable("email") String email, @PathVariable("password") String password)
-    {
-	postgreDAO.connect();
-	try
+	@RequestMapping(value = "/{email}/{password}", method = RequestMethod.GET)
+	public Token login(@PathVariable("email") String email, @PathVariable("password") String password)
 	{
-	    String passwordUserDB = postgreDAO.getUserPassword( email );
-	    if(passwordUserDB == null) {
+		postgreDAO.connect();
+		try
+		{
+			String passwordUserDB = postgreDAO.getUserPassword(email);
+			if (passwordUserDB == null)
+			{
+				return null;
+			}
+			if (passwordUserDB.equals(password))
+			{
+				Token token = generateToken();
+				postgreDAO.storeTokenToUser(new User(email), token);
+				return token;
+			}
+
+		} catch (SQLException | InvalidInformationException e)
+		{
+			System.out.println(e.getMessage());
+			return null;
+		}
 		return null;
-	    }
-	    if ( passwordUserDB.equals( password ) )
-	    {
-		Token token = generateToken();
-		postgreDAO.storeTokenToUser( new User( email ), token );
-		return token;
-	    }
-
-	} catch ( SQLException | InvalidInformationException e )
-	{
-	    System.out.println( e.getMessage() );
-	    return null;
 	}
-	return null;
-    }
 
-    /**
-     * Apply an algorithm to create a new token.
-     *
-     * @return The generated token
-     */
-    private Token generateToken()
-    {
-	String randomToken = UUID.randomUUID().toString();
-	randomToken = randomToken.replaceAll( "-", "" );
-	return new Token( randomToken );
-    }
+	/**
+	 * Apply an algorithm to create a new token.
+	 *
+	 * @return The generated token
+	 */
+	private Token generateToken()
+	{
+		String randomToken = UUID.randomUUID().toString();
+		randomToken = randomToken.replaceAll("-", "");
+		return new Token(randomToken);
+	}
 }

@@ -19,24 +19,24 @@ import com.apporelbotna.gameserver.stubs.UserWrapper;
 @RequestMapping(value = "/auth", produces = "application/json")
 public class AuthController
 {
-    PostgreDAO postgreDAO = new PostgreDAO();
+	PostgreDAO postgreDAO = new PostgreDAO();
 
-    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-    public @ResponseBody ResponseEntity< ? > isUserLoggeable(@RequestBody UserWrapper wrapper)
-    {
-	postgreDAO.connect();
+	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity<?> isUserLoggeable(@RequestBody UserWrapper wrapper)
+	{
+		postgreDAO.connect();
 
-	try
-	{
-	    if ( postgreDAO.isTokenValid( wrapper ) )
-	    {
-		return new ResponseEntity<>( HttpStatus.OK );
-	    }
-	    return new ResponseEntity<>( HttpStatus.NOT_FOUND );
-	} catch ( SQLException e )
-	{
-	    System.out.println( e );
-	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
+		try
+		{
+			if (postgreDAO.isTokenValid(wrapper))
+			{
+				return new ResponseEntity<>(HttpStatus.OK);
+			}
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} catch (SQLException e)
+		{
+			System.out.println(e);
+			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+		}
 	}
-    }
 }

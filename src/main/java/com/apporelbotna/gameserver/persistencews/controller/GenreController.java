@@ -19,22 +19,22 @@ import com.apporelbotna.gameserver.persistencews.dao.PostgreDAO;
 @RequestMapping(value = "/genre", produces = "application/json")
 public class GenreController
 {
-    @Autowired
-    private PostgreDAO postgreDAO;
+	@Autowired
+	private PostgreDAO postgreDAO;
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity< List<String> > findAllGenres()
-    {
-	postgreDAO.connect();
-	List< String > genres = new ArrayList<>();
-	try
+	@RequestMapping(method = RequestMethod.GET)
+	public ResponseEntity<List<String>> findAllGenres()
 	{
-	    genres = postgreDAO.getAllGenre();
-	} catch ( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    e.printStackTrace();
+		postgreDAO.connect();
+		List<String> genres = new ArrayList<>();
+		try
+		{
+			genres = postgreDAO.getAllGenre();
+		} catch (SQLException e)
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(genres, HttpStatus.OK);
 	}
-	return new ResponseEntity<>(genres, HttpStatus.OK );
-    }
 }
