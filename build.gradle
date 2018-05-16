@@ -1,4 +1,5 @@
 plugins {
+	id 'application'
 	id 'maven'
     id 'net.ltgt.apt' version '0.10'
     id 'io.franzbecker.gradle-lombok' version '1.11'
@@ -7,8 +8,14 @@ plugins {
     id "io.spring.dependency-management" version "1.0.4.RELEASE"
 }
 
+
 jar {
+	mainClassName = 'com.apporelbotna.gameserver.persistencews.WebServiceAPP'
 	enabled = true
+	
+	manifest {
+		attributes 'Start-Class': 'com.apporelbotna.gameserver.persistencews.WebServiceAPP'
+	}
 }
 
 bootJar {
