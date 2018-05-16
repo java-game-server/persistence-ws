@@ -24,7 +24,7 @@ public class ConnectivityPostgreDAO implements Connectivity
 	try
 	{
 	    conn = DriverManager.getConnection( URL, DB_USER, DB_PASSWORD );
-	    logger.debug( "Connected to the PostgreSQL server successfully." );
+	    System.out.println( "Connected to the PostgreSQL server successfully." );
 	} catch ( SQLException e )
 	{
 	    logger.error( e.getMessage() );

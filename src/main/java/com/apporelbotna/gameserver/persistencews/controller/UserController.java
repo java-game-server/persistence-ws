@@ -36,6 +36,7 @@ public class UserController
     @RequestMapping(value = "/{email}", method = RequestMethod.GET)
     public ResponseEntity< User > findUserByEmail(@PathVariable String email)
     {
+	postgreDAO.connect();
 	User user = null;
 	try
 	{
