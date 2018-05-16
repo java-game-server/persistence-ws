@@ -26,101 +26,92 @@ import com.apporelbotna.gameserver.stubs.User;
 @RequestMapping(value = "/game", produces = "application/json")
 public class GameController
 {
-    @Autowired
-    private PostgreDAO		  postgreDAO;
-    @Autowired
-    private GameResourceAssembler assembler;
+	@Autowired
+	private PostgreDAO postgreDAO;
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<Game>> findAllGames()
-    {
-	postgreDAO.connect();
-	List<Game> games = new ArrayList<>();
-	try
-	{
-	    games = postgreDAO.getAllGames();
-	}
-	catch( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    e.printStackTrace();
-	}
-	return new ResponseEntity<>( games,
-				     HttpStatus.OK );
-    }
+	@Autowired
+	private GameResourceAssembler assembler;
 
-    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-    public @ResponseBody ResponseEntity<?> createGame( @RequestBody Game gameToStore )
-    {
-	try
+	@RequestMapping(method = RequestMethod.GET)
+	public ResponseEntity<List<Game>> findAllGames()
 	{
-	    postgreDAO.connect();
-	    int idGenerated = postgreDAO.storeNewGame( gameToStore );
-	    postgreDAO.getGameById( idGenerated );
-	    return new ResponseEntity<>( HttpStatus.CREATED );
+		postgreDAO.connect();
+		List<Game> games = new ArrayList<>();
+		try
+		{
+			games = postgreDAO.getAllGames();
+		} catch (SQLException e)
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		return new ResponseEntity<>(games, HttpStatus.OK);
 	}
-	catch( InvalidInformationException e )
-	{
-	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.ALREADY_REPORTED );
-	}
-	catch( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.SERVICE_UNAVAILABLE );
-	}
-    }
 
-    @RequestMapping(value = "genre/{genre}", method = RequestMethod.PUT, consumes = "application/json")
-    public void createGame( @PathVariable("genre") String genre, @RequestBody Game game )
-    {
-	try
+	@RequestMapping(method = RequestMethod.POST, consumes = "application/json")
+	public @ResponseBody ResponseEntity<?> createGame(@RequestBody Game gameToStore)
 	{
-	    postgreDAO.connect();
-	    postgreDAO.storeGenreToGame( game , genre );
-	    Game gameById = postgreDAO.getGameById( game.getId() );
-	    System.out.println( gameById );
+		try
+		{
+			postgreDAO.connect();
+			int idGenerated = postgreDAO.storeNewGame(gameToStore);
+			postgreDAO.getGameById(idGenerated);
+			return new ResponseEntity<>(HttpStatus.CREATED);
+		} catch (InvalidInformationException e)
+		{
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.ALREADY_REPORTED);
+		} catch (SQLException e)
+		{
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+		}
 	}
-	catch( InvalidInformationException e )
-	{
-	    System.out.println( e.getMessage() );
-	}
-	catch( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	}
-    }
 
-    @RequestMapping(value = "/{userInput}/name", method = RequestMethod.GET)
-    public ResponseEntity<List<Game>> findGamesLikeName( @PathVariable String userInput )
-    {
-	postgreDAO.connect();
-	try
+	@RequestMapping(value = "genre/{genre}", method = RequestMethod.PUT, consumes = "application/json")
+	public void createGame(@PathVariable("genre") String genre, @RequestBody Game game)
 	{
-	    List<Game> games = postgreDAO.findGamesLikeName( userInput );
-	    return new ResponseEntity<>( games,
-					 HttpStatus.OK );
+		try
+		{
+			postgreDAO.connect();
+			postgreDAO.storeGenreToGame(game, genre);
+			Game gameById = postgreDAO.getGameById(game.getId());
+			System.out.println(gameById);
+		} catch (InvalidInformationException e)
+		{
+			System.out.println(e.getMessage());
+		} catch (SQLException e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
-	catch( SQLException e )
-	{
-	    System.out.println( e.getMessage() );
-	    return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
-	}
-    }
 
-    @RequestMapping(value = "/{idGame}", method = RequestMethod.PUT)
-    public void addGameToUser( @PathVariable("idGame") String idGame,
-							  @RequestBody User user )
-    {
-	postgreDAO.connect();
-	try
+	@RequestMapping(value = "/{userInput}/name", method = RequestMethod.GET)
+	public ResponseEntity<List<Game>> findGamesLikeName(@PathVariable String userInput)
 	{
-	    postgreDAO.storeGameToUser( user , Integer.parseInt( idGame ) );
+		postgreDAO.connect();
+		try
+		{
+			List<Game> games = postgreDAO.findGamesLikeName(userInput);
+			return new ResponseEntity<>(games, HttpStatus.OK);
+		} catch (SQLException e)
+		{
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-	catch( SQLException | InvalidInformationException e )
+
+	@RequestMapping(value = "/{idGame}", method = RequestMethod.PUT)
+	public void addGameToUser(@PathVariable("idGame") String idGame, @RequestBody User user)
 	{
-	    System.out.println( e.getMessage() );
-	    e.printStackTrace();
+		postgreDAO.connect();
+		try
+		{
+			postgreDAO.storeGameToUser(user, Integer.parseInt(idGame));
+		} catch (SQLException | InvalidInformationException e)
+		{
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
 	}
-    }
 }
